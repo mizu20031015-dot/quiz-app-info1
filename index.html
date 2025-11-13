@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webブラウザ クイズゲーム</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="title-screen" class="screen">
+        <h1>Webブラウザ クイズゲーム</h1>
+        <p id="total-questions"></p>
+        <button id="start-button">START</button>
+    </div>
+
+    <div id="quiz-screen" class="screen" style="display:none;">
+        <h2 id="quiz-genre">情報Iクイズ</h2>
+        <div id="quiz-container">
+            <p id="question-counter"></p>
+            <p id="question-text"></p>
+            <div id="options-container">
+                <button class="option-btn" data-option="0"></button>
+                <button class="option-btn" data-option="1"></button>
+                <button class="option-btn" data-option="2"></button>
+                <button class="option-btn" data-option="3"></button>
+            </div>
+        </div>
+    </div>
+
+    <div id="feedback-screen" class="screen" style="display:none;">
+        <h2 id="feedback-genre">情報Iクイズ</h2>
+        <h3 id="feedback-text"></h3>
+        <p id="correct-answer"></p>
+        <h3 id="explanation-title"></h3>
+        <p id="explanation-text"></p>
+        <div id="feedback-buttons">
+            <button id="next-button">次へ→</button>
+            <button id="result-button" style="display:none;">結果→</button>
+        </div>
+    </div>
+
+    <div id="result-screen" class="screen" style="display:none;">
+        <h1>結果</h1>
+        <p id="result-score"></p>
+        <p id="result-message"></p>
+        <button id="restart-button">タイトルへ→</button>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

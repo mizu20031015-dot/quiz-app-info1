@@ -1,0 +1,190 @@
+body {
+    /* 画面全体を使用 */
+    /* ★修正: クロスプラットフォーム対応のモダンなフォントスタックを適用 */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", "游ゴシック", "Yu Gothic", "メイリオ", "Meiryo", "ヒラギノ角ゴ ProN W3", "Hiragino Kaku Gothic ProN", sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #e0e0e0;
+}
+
+.screen {
+    /* 画面の幅を最大化し、中央に配置 */
+    width: 95vw;
+    max-width: 1200px;
+    padding: 2vh 3vw;
+    background-color: white;
+    border-radius: 20px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    text-align: center;
+}
+
+h1, h2, h3 {
+    color: #111;
+    font-weight: bold;
+}
+
+h1 {
+    font-size: 4em; /* タイトルを大きく */
+    margin-bottom: 40px;
+}
+/* タイトル画面の問題総数 */
+#total-questions {
+    font-size: 2em;
+    font-weight: 500;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+h2 {
+    font-size: 3em; /* ジャンル名を大きく */
+    margin-bottom: 0px; 
+}
+
+/* ボタン（START、次へ、結果へ） */
+#start-button, #next-button, #result-button, #restart-button {
+    padding: 30px 60px; /* ボタンサイズを大幅に拡大 */
+    font-size: 2.5em; /* 文字を大きく */
+    cursor: pointer;
+    border: none;
+    border-radius: 10px;
+    color: white;
+    background-color: #CC0000; /* 赤系に変更 (高視認性) */
+    margin-top: 50px;
+    transition: background-color 0.2s;
+}
+
+#start-button:hover, #next-button:hover, #result-button:hover, #restart-button:hover {
+    background-color: #990000;
+}
+
+/* 問題表示エリア */
+#quiz-container {
+    text-align: left;
+    position: relative;
+    padding-top: 0px;
+}
+
+/* 問題文の前のカウンターのスタイル */
+#question-counter {
+    position: static;
+    text-align: left;
+    font-size: 2.5em; 
+    font-weight: bold;
+    color: #CC0000;
+    margin-bottom: 10px;
+    padding-left: 0;
+}
+
+#question-text {
+    font-size: 2.5em; /* 問題文を大きく */
+    margin-bottom: 60px; 
+    margin-top: 0;
+    line-height: 1.4;
+    font-weight: 500;
+    color: #000;
+}
+
+/* 選択肢ボタンコンテナ */
+#options-container {
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 20px; 
+    margin-top: 40px;
+}
+
+.option-btn {
+    width: 100%;
+    text-align: left;
+    padding: 40px 30px; 
+    font-size: 3em; 
+    background-color: #CC0000;
+    color: white;
+    border-radius: 10px;
+    transition: background-color 0.2s;
+}
+
+.option-btn:hover {
+    background-color: #990000;
+}
+
+/* 正誤確認画面のスタイル */
+#feedback-screen {
+    width: 95vw;
+    max-width: 1200px;
+    padding: 5vh 3vw;
+    background-color: white;
+    border-radius: 20px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    text-align: center;
+}
+
+/* ボタンコンテナを右寄せにする */
+#feedback-buttons {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* フィードバック画面内のテキスト調整 */
+#feedback-text {
+    font-size: 3.5em;
+    font-weight: bold;
+    margin: 30px 0;
+    text-align: center;
+}
+
+#correct-answer {
+    color: green;
+    font-size: 2.2em;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-align: center;
+    padding-left: 0;
+}
+
+/* 解説のタイトル */
+#explanation-title {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: #111;
+    text-align: left;
+    margin-bottom: 5px;
+    margin-top: 20px;
+    padding: 0 10px;
+}
+
+#explanation-text {
+    text-align: left; 
+    margin-top: 0px; 
+    font-size: 2.5em;
+    line-height: 1.4;
+    padding: 0 10px;
+}
+
+/* 結果画面のスタイル */
+#result-screen {
+    text-align: center;
+}
+#result-score {
+    font-size: 5em;
+    font-weight: bold;
+    color: #CC0000;
+    margin-bottom: 10px;
+}
+
+#result-message {
+    font-size: 2.5em;
+    font-weight: 600;
+    color: #333;
+}
+
+#restart-button {
+    background-color: #6c757d;
+}
+
+#restart-button:hover {
+    background-color: #5a6268;
+}
