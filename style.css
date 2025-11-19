@@ -234,7 +234,7 @@ h2 {
 
 /* ========================================================= */
 /* --- 横画面 (Landscape) 特化の調整 --- */
-/* 横画面の短い高さに合わせつつ、2列表示を維持するための調整 */
+/* 横画面の極端に短い高さに対応するため、解説・結果画面の要素を密着させる */
 /* ========================================================= */
 @media screen and (orientation: landscape) and (max-width: 1024px) {
     
@@ -243,38 +243,65 @@ h2 {
     }
 
     h2 {
-        font-size: 1.8em; /* タイトルを小さく */
+        font-size: 1.8em; 
     }
-
-    /* 問題番号と問題文のフォントサイズを縮小 */
+    
+    /* 問題画面の文字サイズ */
     #question-counter,
     #question-text {
         font-size: 1.1em; 
-        margin-bottom: 10px; /* マージンを大きく削減 */
+        margin-bottom: 10px; 
     }
-    
-    /* --- 選択肢のレイアウト修正 (2列表示に戻す) --- */
+
+    /* --- 選択肢 (問画面) --- */
     #options-container {
-        grid-template-columns: 1fr 1fr; /* ★修正: 2列表示を維持 */
+        grid-template-columns: 1fr 1fr; /* 2列表示を維持 */
         gap: 8px; /* 隙間を詰める */
     }
 
     .option-btn {
-        /* ボタンの高さとフォントを最小化 */
-        font-size: 1.2em; /* ★修正: 2列に収まるサイズに調整 */
-        padding: 10px 15px; /* 縦パディングを削減 */
-    }
-    
-    /* その他のボタンもサイズを調整 */
-    #start-button, #next-button, #result-button, #restart-button {
-        padding: 10px 30px; 
         font-size: 1.2em;
-        margin-top: 20px;
+        padding: 10px 15px; 
     }
     
-    /* 解説画面の文字サイズも最小化 */
+    /* --- 結果/解説画面 (フィードバック画面) の調整 --- */
+    
+    /* 正誤判定テキスト (正解/不正解) */
+    #feedback-text {
+        font-size: 2.0em; /* PCの3.5emから大幅縮小 */
+        margin: 10px 0;
+    }
+
+    /* 正解表示 (例: 3. 情報落ち) */
+    #correct-answer {
+        font-size: 1.5em; /* PCの2.2emから大幅縮小 */
+        margin-bottom: 10px;
+    }
+
+    /* 解説タイトル/本文 (フォントサイズとマージンを最小化) */
     #explanation-title,
     #explanation-text {
         font-size: 1.2em; 
+        margin-top: 5px;
+        margin-bottom: 0px; 
+        padding: 0 5px; /* パディングも削減 */
+    }
+
+    /* 結果画面のスコア */
+    #result-score {
+        font-size: 3em; /* PCの5emから縮小 */
+        margin-bottom: 5px;
+    }
+    
+    /* 結果メッセージ */
+    #result-message {
+        font-size: 1.5em; 
+    }
+
+    /* 次へ/タイトルへ ボタン */
+    #start-button, #next-button, #result-button, #restart-button {
+        padding: 10px 30px; 
+        font-size: 1.2em;
+        margin-top: 15px; /* マージンをさらに削減 */
     }
 }
