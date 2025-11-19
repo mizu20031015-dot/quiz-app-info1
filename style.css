@@ -1,7 +1,6 @@
 body {
     /* 画面全体を使用 */
-    /* ★修正: クロスプラットフォーム対応のモダンなフォントスタックを適用 */
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", "游ゴシック", "Yu Gothic", "メイリオ", "Meiryo", "ヒラギノ角ゴ ProN W3", "Hiragino Kaku Gothic ProN", sans-serif;
+    font-family: Arial, sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -11,10 +10,10 @@ body {
 }
 
 .screen {
-    /* 画面の幅を最大化し、中央に配置 */
+    /* PC/基本設定: 画面の幅を最大化し、中央に配置 */
     width: 95vw;
     max-width: 1200px;
-    padding: 2vh 3vw;
+    padding: 2vh 3vw; /* 上下のパディングを詰める */
     background-color: white;
     border-radius: 20px;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
@@ -40,18 +39,18 @@ h1 {
 
 h2 {
     font-size: 3em; /* ジャンル名を大きく */
-    margin-bottom: 0px; 
+    margin-bottom: 0px; /* 問題文とのマージンを詰める */
 }
 
 /* ボタン（START、次へ、結果へ） */
 #start-button, #next-button, #result-button, #restart-button {
     padding: 30px 60px; /* ボタンサイズを大幅に拡大 */
-    font-size: 2.5em; /* 文字を大きく */
+    font-size: 2.5em; 
     cursor: pointer;
     border: none;
     border-radius: 10px;
     color: white;
-    background-color: #CC0000; /* 赤系に変更 (高視認性) */
+    background-color: #CC0000;
     margin-top: 50px;
     transition: background-color 0.2s;
 }
@@ -71,7 +70,7 @@ h2 {
 #question-counter {
     position: static;
     text-align: left;
-    font-size: 2.5em; 
+    font-size: 2.5em; /* PC版サイズ */
     font-weight: bold;
     color: #CC0000;
     margin-bottom: 10px;
@@ -79,27 +78,27 @@ h2 {
 }
 
 #question-text {
-    font-size: 2.5em; /* 問題文を大きく */
-    margin-bottom: 60px; 
+    font-size: 2.5em; /* PC版サイズ */
+    margin-bottom: 60px; /* 3行を想定した余白を確保 */
     margin-top: 0;
     line-height: 1.4;
     font-weight: 500;
     color: #000;
 }
 
-/* 選択肢ボタンコンテナ */
+/* 選択肢ボタンコンテナ (PC版 / 横画面の基本レイアウト) */
 #options-container {
     display: grid; 
-    grid-template-columns: 1fr 1fr; 
+    grid-template-columns: 1fr 1fr; /* 2列に分割 */
     gap: 20px; 
-    margin-top: 40px;
+    margin-top: 0px;
 }
 
 .option-btn {
     width: 100%;
     text-align: left;
-    padding: 40px 30px; 
-    font-size: 3em; 
+    padding: 40px 30px; /* PC版の大きなパディング */
+    font-size: 3em; /* PC版サイズ */
     background-color: #CC0000;
     color: white;
     border-radius: 10px;
@@ -110,7 +109,7 @@ h2 {
     background-color: #990000;
 }
 
-/* 正誤確認画面のスタイル */
+/* --- 正誤確認画面のスタイル (PC/モバイル共通) --- */
 #feedback-screen {
     width: 95vw;
     max-width: 1200px;
@@ -121,14 +120,12 @@ h2 {
     text-align: center;
 }
 
-/* ボタンコンテナを右寄せにする */
 #feedback-buttons {
     width: 100%;
     display: flex;
     justify-content: flex-end;
 }
 
-/* フィードバック画面内のテキスト調整 */
 #feedback-text {
     font-size: 3.5em;
     font-weight: bold;
@@ -145,7 +142,6 @@ h2 {
     padding-left: 0;
 }
 
-/* 解説のタイトル */
 #explanation-title {
     font-size: 2.5em;
     font-weight: bold;
@@ -157,9 +153,9 @@ h2 {
 }
 
 #explanation-text {
-    text-align: left; 
-    margin-top: 0px; 
-    font-size: 2.5em;
+    text-align: left;
+    margin-top: 0px;
+    font-size: 2.5em; /* 問題文と同じサイズに拡大 */
     line-height: 1.4;
     padding: 0 10px;
 }
@@ -187,4 +183,67 @@ h2 {
 
 #restart-button:hover {
     background-color: #5a6268;
+}
+
+/* ========================================================= */
+/* --- モバイル最適化: 画面幅が狭い場合のスタイルを上書き --- */
+/* (主にスマートフォン縦画面を想定) */
+/* ========================================================= */
+@media screen and (max-width: 768px) {
+    
+    /* 基本フォントの縮小 (h1, h2, h3 はそのまま) */
+    h2 {
+        font-size: 2.5em; 
+    }
+
+    /* 問題番号と問題文のフォントサイズを調整 */
+    #question-counter,
+    #question-text {
+        font-size: 1.5em; /* モバイル向けに縮小 */
+    }
+    
+    /* 問題文の下の余白を削減し、コンテンツを上に詰める */
+    #question-text {
+        margin-bottom: 30px; /* 3行になってもスクロールしないようマージンを調整 */
+    }
+
+    /* --- 選択肢のレイアウト修正 (縦画面で1列に戻す) --- */
+    #options-container {
+        grid-template-columns: 1fr; /* 1列表示に戻す */
+        gap: 8px; /* 縦方向の余白を詰めることでストライプ感を軽減 */
+    }
+
+    .option-btn {
+        /* ボタンの高さとフォントを大幅に縮小し、スクロールをなくす */
+        font-size: 1.8em; /* モバイル向けに縮小 */
+        padding: 15px 20px; /* 縦パディングを大幅に削減 */
+    }
+    
+    /* その他のボタンもサイズを調整 */
+    #start-button, #next-button, #result-button, #restart-button {
+        padding: 20px 40px; 
+        font-size: 1.5em;
+        margin-top: 30px;
+    }
+    
+    /* 解説画面の文字サイズもモバイル向けに調整 */
+    #explanation-title,
+    #explanation-text {
+        font-size: 1.6em; 
+    }
+}
+
+/* ========================================================= */
+/* --- 小画面・タブレット横画面向けの微調整 --- */
+/* ========================================================= */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+    /* 比較的広い画面でもフォントをPCより少し小さく保つ */
+    #question-counter,
+    #question-text {
+        font-size: 2.0em; 
+    }
+    .option-btn {
+        font-size: 2.2em; 
+        padding: 30px 20px;
+    }
 }
