@@ -13,7 +13,7 @@ body {
     /* PC/基本設定: 画面の幅を最大化し、中央に配置 */
     width: 95vw;
     max-width: 1200px;
-    padding: 2vh 3vw; /* 上下のパディングを詰める */
+    padding: 2vh 3vw; 
     background-color: white;
     border-radius: 20px;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
@@ -26,7 +26,7 @@ h1, h2, h3 {
 }
 
 h1 {
-    font-size: 4em; /* タイトルを大きく */
+    font-size: 4em; 
     margin-bottom: 40px;
 }
 /* タイトル画面の問題総数 */
@@ -38,13 +38,13 @@ h1 {
 }
 
 h2 {
-    font-size: 3em; /* ジャンル名を大きく */
-    margin-bottom: 0px; /* 問題文とのマージンを詰める */
+    font-size: 3em; 
+    margin-bottom: 0px; 
 }
 
 /* ボタン（START、次へ、結果へ） */
 #start-button, #next-button, #result-button, #restart-button {
-    padding: 30px 60px; /* ボタンサイズを大幅に拡大 */
+    padding: 30px 60px; 
     font-size: 2.5em; 
     cursor: pointer;
     border: none;
@@ -70,7 +70,7 @@ h2 {
 #question-counter {
     position: static;
     text-align: left;
-    font-size: 2.5em; /* PC版サイズ */
+    font-size: 2.5em; 
     font-weight: bold;
     color: #CC0000;
     margin-bottom: 10px;
@@ -78,8 +78,8 @@ h2 {
 }
 
 #question-text {
-    font-size: 2.5em; /* PC版サイズ */
-    margin-bottom: 60px; /* 3行を想定した余白を確保 */
+    font-size: 2.5em; 
+    margin-bottom: 60px; 
     margin-top: 0;
     line-height: 1.4;
     font-weight: 500;
@@ -97,8 +97,8 @@ h2 {
 .option-btn {
     width: 100%;
     text-align: left;
-    padding: 40px 30px; /* PC版の大きなパディング */
-    font-size: 3em; /* PC版サイズ */
+    padding: 40px 30px; 
+    font-size: 3em; 
     background-color: #CC0000;
     color: white;
     border-radius: 10px;
@@ -109,7 +109,7 @@ h2 {
     background-color: #990000;
 }
 
-/* --- 正誤確認画面のスタイル (PC/モバイル共通) --- */
+/* --- 正誤確認画面のスタイル (共通) --- */
 #feedback-screen {
     width: 95vw;
     max-width: 1200px;
@@ -155,7 +155,7 @@ h2 {
 #explanation-text {
     text-align: left;
     margin-top: 0px;
-    font-size: 2.5em; /* 問題文と同じサイズに拡大 */
+    font-size: 2.5em; 
     line-height: 1.4;
     padding: 0 10px;
 }
@@ -186,12 +186,11 @@ h2 {
 }
 
 /* ========================================================= */
-/* --- モバイル最適化: 画面幅が狭い場合のスタイルを上書き --- */
-/* (主にスマートフォン縦画面を想定) */
+/* --- モバイル最適化: 画面幅が狭い場合のスタイルを上書き (縦画面/狭い横画面) --- */
 /* ========================================================= */
 @media screen and (max-width: 768px) {
     
-    /* 基本フォントの縮小 (h1, h2, h3 はそのまま) */
+    /* 基本フォントの縮小 */
     h2 {
         font-size: 2.5em; 
     }
@@ -199,24 +198,24 @@ h2 {
     /* 問題番号と問題文のフォントサイズを調整 */
     #question-counter,
     #question-text {
-        font-size: 1.5em; /* モバイル向けに縮小 */
+        font-size: 1.5em; 
     }
     
-    /* 問題文の下の余白を削減し、コンテンツを上に詰める */
+    /* 問題文の下の余白を削減 */
     #question-text {
-        margin-bottom: 30px; /* 3行になってもスクロールしないようマージンを調整 */
+        margin-bottom: 30px; 
     }
 
-    /* --- 選択肢のレイアウト修正 (縦画面で1列に戻す) --- */
+    /* --- 選択肢のレイアウト修正 (1列に戻す) --- */
     #options-container {
         grid-template-columns: 1fr; /* 1列表示に戻す */
-        gap: 8px; /* 縦方向の余白を詰めることでストライプ感を軽減 */
+        gap: 8px; 
     }
 
     .option-btn {
-        /* ボタンの高さとフォントを大幅に縮小し、スクロールをなくす */
-        font-size: 1.8em; /* モバイル向けに縮小 */
-        padding: 15px 20px; /* 縦パディングを大幅に削減 */
+        /* ボタンの高さとフォントを大幅に縮小 */
+        font-size: 1.8em; 
+        padding: 15px 20px; 
     }
     
     /* その他のボタンもサイズを調整 */
@@ -234,16 +233,57 @@ h2 {
 }
 
 /* ========================================================= */
-/* --- 小画面・タブレット横画面向けの微調整 --- */
+/* --- 横画面 (Landscape) 特化の調整 --- */
+/* 横画面の極端に短い高さに対応するため、さらに縮小・密着させる */
 /* ========================================================= */
-@media screen and (min-width: 769px) and (max-width: 1024px) {
-    /* 比較的広い画面でもフォントをPCより少し小さく保つ */
+@media screen and (orientation: landscape) and (max-width: 1024px) {
+    
+    .screen {
+        padding: 1vh 2vw; /* 上下のパディングをさらに削減 */
+    }
+
+    h2 {
+        font-size: 1.8em; /* タイトルをさらに小さく */
+    }
+
+    /* 問題番号と問題文のフォントサイズを極限まで縮小 */
     #question-counter,
     #question-text {
-        font-size: 2.0em; 
+        font-size: 1.1em; 
+        margin-bottom: 15px; /* マージンを大きく削減 */
     }
+    
+    /* --- 選択肢のレイアウト修正 (横画面でも強制的に1列に) --- */
+    #options-container {
+        grid-template-columns: 1fr; /* 1列表示に強制 */
+        gap: 5px; /* 隙間を最小限に */
+    }
+
     .option-btn {
-        font-size: 2.2em; 
-        padding: 30px 20px;
+        /* ボタンの高さとフォントを最小化 */
+        font-size: 1.3em;
+        padding: 8px 10px; /* 縦パディングを大幅削減 */
     }
+    
+    /* その他のボタンもサイズを調整 */
+    #start-button, #next-button, #result-button, #restart-button {
+        padding: 10px 30px; 
+        font-size: 1.2em;
+        margin-top: 20px;
+    }
+    
+    /* 解説画面の文字サイズも最小化 */
+    #explanation-title,
+    #explanation-text {
+        font-size: 1.2em; 
+    }
+}
+
+/* ========================================================= */
+/* --- PC/タブレット横画面向けの微調整 (PCの設定を維持) --- */
+/* --------------------------------------------------------- */
+/* 769px以上の幅の場合、PCの2列表示を維持する設定 */
+/* --------------------------------------------------------- */
+@media screen and (min-width: 769px) and (min-height: 481px) {
+    /* PCの基本設定が適用されるため、ここでは特別な調整は不要 */
 }
