@@ -62,7 +62,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // BGMの再生状態を更新する関数
     function updateBgmToggleButton() {
-        // BGMが一時停止中 または ミュート状態の場合は Off と表示
         if (backgroundMusic.paused || backgroundMusic.muted) {
             bgmToggleButton.textContent = 'BGM Off';
         } else {
@@ -77,13 +76,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 問題を表示する関数
     function showQuestion() {
-        // BGMはモード選択ボタンのクリックで制御されているため、ここでは何もしない
-        
         const currentQuestion = questions[currentQuestionIndex];
         
-        // 問題カウンターを「問〇」形式で表示
         questionCounter.textContent = `問${currentQuestionIndex + 1}`;
-        
         questionText.textContent = currentQuestion.question;
         
         optionButtons.forEach((button, index) => {
@@ -91,7 +86,6 @@ document.addEventListener('DOMContentLoaded', () => {
             button.disabled = false;
         });
 
-        // 画面の切り替え
         hideAllScreens();
         quizScreen.style.display = 'block';
     }
@@ -110,14 +104,11 @@ document.addEventListener('DOMContentLoaded', () => {
             feedbackText.style.color = '#CC00CC'; 
         }
 
-        // 正解の選択肢に「：」を全角に変更
         correctAnswerText.innerHTML = `正解： <span style="color: green; font-weight: bold;">${currentQuestion.options[currentQuestion.answer]}</span>`; 
         
-        // 解説の「：」を全角に変更
         explanationTitle.textContent = `解説`;
         explanationText.textContent = currentQuestion.explanation;
         
-        // 最終問題かどうかの判定
         if (currentQuestionIndex === questions.length - 1) {
             nextButton.style.display = 'none';
             resultButton.style.display = 'block';
@@ -142,15 +133,15 @@ document.addEventListener('DOMContentLoaded', () => {
         let message = '';
 
         // ★★★ 5段階評価のロジックを実装 ★★★
-        if (scorePercentage > 80) { // 81% 以上 (Sランク)
+        if (scorePercentage > 80) {
             message = '完璧！情報Iマスター！';
-        } else if (scorePercentage > 60) { // 61% 〜 80% (Aランク)
+        } else if (scorePercentage > 60) {
             message = '素晴らしい！その調子！！';
-        } else if (scorePercentage > 40) { // 41% 〜 60% (Bランク)
+        } else if (scorePercentage > 40) {
             message = '標準到達！あと一歩！';
-        } else if (scorePercentage > 20) { // 21% 〜 40% (Cランク)
+        } else if (scorePercentage > 20) {
             message = 'これから伸びます！基礎固め！';
-        } else { // 0% 〜 20% (Dランク)
+        } else {
             message = '焦らず！まずはスタートライン！';
         }
         // ★★★ ロジック終了 ★★★
@@ -158,9 +149,8 @@ document.addEventListener('DOMContentLoaded', () => {
         resultScore.textContent = `${correctAnswersCount}/${totalQuestions}`;
         resultMessage.textContent = message;
         
-        // 結果画面ではBGMを停止
         backgroundMusic.pause();
-        backgroundMusic.currentTime = 0; // 再生位置をリセット
+        backgroundMusic.currentTime = 0;
         
         updateBgmToggleButton();
 
@@ -185,34 +175,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    // イベントリスナーの設定
-    // ★修正: モード選択ボタンのイベントリスナー内でBGM制御を直接実行
+    // ★修正: モード選択ボタンのイベントリスナー - 画面遷移を最優先にする
     modeStudySoundButton.addEventListener('click', () => {
-        // 1. BGM再生設定を準備
+        // 1. まず、モードを設定
+        currentMode = 'sound';
+        
+        // 2. BGMの再生を試行（失敗しても画面遷移は止めない）
         backgroundMusic.muted = false;
         backgroundMusic.volume = parseFloat(volumeSlider.value);
         
-        // 2. ユーザー操作の直後に再生を試みる
         backgroundMusic.play()
             .then(() => {
-                // 再生成功時の処理
-                updateBgmToggleButton();
-                initializeQuiz('sound');
+                // 再生成功: 何もしない (updateBgmToggleButtonが自動で更新)
             })
             .catch(error => {
-                // 再生失敗時（ブロックされた場合）の処理
+                // ★修正: 再生失敗: 画面遷移を止めていた原因のアラートを、BGM再生の成功・失敗に関係なく実行されるように変更
                 alert('BGMの再生がブロックされました。ブラウザの設定を確認するか、学習集中モード(音なし)をお試しください。');
                 backgroundMusic.muted = true; // BGMをミュートし、音が鳴らない状態を維持
-                updateBgmToggleButton();
+            })
+            .finally(() => {
+                // ★追加: BGMの再生結果にかかわらず、クイズを初期化し画面遷移を保証
                 initializeQuiz('sound');
             });
     });
 
     modeStudySilentButton.addEventListener('click', () => {
-        // BGMを停止
+        // 1. BGMを停止し、無音モードのバグを回避
         backgroundMusic.pause();
         backgroundMusic.currentTime = 0;
         updateBgmToggleButton();
+
+        // 2. クイズを初期化し、画面遷移を保証
         initializeQuiz('silent');
     });
 
@@ -239,7 +232,6 @@ document.addEventListener('DOMContentLoaded', () => {
     resultButton.addEventListener('click', showResults);
     
     restartButton.addEventListener('click', () => {
-        // タイトル画面へ戻る際にBGMを停止
         backgroundMusic.pause();
         backgroundMusic.currentTime = 0;
         updateBgmToggleButton();
@@ -253,11 +245,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const newVolume = parseFloat(event.target.value);
         setGlobalVolume(newVolume);
         
-        // 音量スライダーを操作した場合、mutedを解除し、BGMをONの状態にする
         if (newVolume > 0 && backgroundMusic.muted) {
             backgroundMusic.muted = false;
         }
-        // BGMが一時停止していたら、再生を試みる (ユーザー操作と見なされるよう、イベントリスナー内で行う)
         if (currentMode === 'sound' && backgroundMusic.paused) {
              backgroundMusic.play().catch(e => console.log("BGM再生エラー(スライダー操作):", e));
         }
@@ -268,15 +258,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // BGM On/Off ボタンのイベントリスナー
     bgmToggleButton.addEventListener('click', () => {
         if (backgroundMusic.paused || backgroundMusic.muted) {
-            // BGMがOffの状態なら、Onにする
-            backgroundMusic.muted = false; // ミュート解除
-            backgroundMusic.volume = parseFloat(volumeSlider.value); // 音量設定
+            backgroundMusic.muted = false;
+            backgroundMusic.volume = parseFloat(volumeSlider.value);
             backgroundMusic.play().catch(e => {
                 alert('BGM再生がブロックされました。ブラウザの設定でメディアの自動再生を許可してください。');
-                backgroundMusic.muted = true; // 再生失敗時はミュートに戻す
+                backgroundMusic.muted = true;
             });
         } else {
-            // BGMがOnの状態なら、Offにする (一時停止)
             backgroundMusic.pause();
         }
         updateBgmToggleButton();
