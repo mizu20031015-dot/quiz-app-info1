@@ -11,12 +11,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultButton = document.getElementById('result-button');
     const restartButton = document.getElementById('restart-button');
 
-    // ★追加: 音声関連要素
+    // 音声関連要素
     const volumeSlider = document.getElementById('volume-slider');
     const bgmToggleButton = document.getElementById('bgm-toggle-button');
     const backgroundMusic = document.getElementById('background-music');
 
-    // ★追加: モード選択ボタン
+    // モード選択ボタン
     const modeStudySoundButton = document.getElementById('mode-study-sound');
     const modeStudySilentButton = document.getElementById('mode-study-silent');
     const modeQuizButton = document.getElementById('mode-quiz');
@@ -36,7 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentQuestionIndex = 0; // 現在の問題番号
     let correctAnswersCount = 0; // 正解数
     
-    // ★修正: 現在のモードを保持する変数
     let currentMode = 'silent'; // 'sound', 'silent', 'quiz'
 
     // JSONファイルを読み込む関数
@@ -56,19 +55,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // ★追加: BGMの音量を設定する関数 (音量スライダーと同期)
+    // BGMの音量を設定する関数 (音量スライダーと同期)
     function setGlobalVolume(volume) {
-        // 現在、BGMのみなので、BGMに適用
         backgroundMusic.volume = volume;
     }
 
-    // ★追加: BGMの再生状態を更新する関数
+    // BGMの再生状態を更新する関数
     function updateBgmToggleButton() {
-        bgmToggleButton.textContent = backgroundMusic.paused ? 'BGM Off' : 'BGM On';
+        // BGMが一時停止中 または ミュート状態の場合は Off と表示
+        if (backgroundMusic.paused || backgroundMusic.muted) {
+            bgmToggleButton.textContent = 'BGM Off';
+        } else {
+            bgmToggleButton.textContent = 'BGM On';
+        }
     }
 
-    // ★追加: 全体音量の初期設定
-    setGlobalVolume(volumeSlider.value);
+    // 全体音量の初期設定
+    setGlobalVolume(parseFloat(volumeSlider.value));
     updateBgmToggleButton();
 
 
@@ -123,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
             resultButton.style.display = 'none';
         }
         
-        // ★修正: 学習集中モードではBGMを止めない
+        // 学習集中モード(音あり)以外ではBGMを停止
         if (currentMode !== 'sound') {
             backgroundMusic.pause();
         }
@@ -155,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resultScore.textContent = `${correctAnswersCount}/${totalQuestions}`;
         resultMessage.textContent = message;
         
-        // ★修正: 結果画面ではBGMを停止
+        // 結果画面ではBGMを停止
         backgroundMusic.pause();
         backgroundMusic.currentTime = 0; // 再生位置をリセット
         
@@ -173,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resultScreen.style.display = 'none';
     }
     
-    // ★修正: モード選択時の処理 (BGMの自動再生を確保)
+    // モード選択時の処理 (BGMの自動再生を確保)
     function startQuiz(mode) {
         currentMode = mode;
         currentQuestionIndex = 0;
@@ -181,7 +184,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // BGMの制御 (ユーザー操作の直後に実行)
         if (mode === 'sound') {
-            // 学習集中モード(音あり)では、BGMを再生
+            // ★修正: 学習集中モード(音あり)では、BGMのmutedを解除してから再生
+            backgroundMusic.muted = false; // 強制的にミュートを解除
+            backgroundMusic.volume = parseFloat(volumeSlider.value); // 音量スライダーの値に設定
             backgroundMusic.play().catch(e => console.log("BGM再生エラー:", e)); 
         } else {
             // それ以外のモードではBGMを停止
@@ -195,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // イベントリスナーの設定
-    // ★修正: スタートボタンをモード選択ボタンに置き換え
+    // スタートボタンをモード選択ボタンに置き換え
     modeStudySoundButton.addEventListener('click', () => startQuiz('sound'));
     modeStudySilentButton.addEventListener('click', () => startQuiz('silent'));
     modeQuizButton.addEventListener('click', () => startQuiz('quiz')); // 知識確認クイズモードは次回以降実装
@@ -214,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
     resultButton.addEventListener('click', showResults);
     
     restartButton.addEventListener('click', () => {
-        // ★修正: タイトル画面へ戻る際にBGMを停止
+        // タイトル画面へ戻る際にBGMを停止
         backgroundMusic.pause();
         backgroundMusic.currentTime = 0;
         updateBgmToggleButton();
@@ -223,26 +228,49 @@ document.addEventListener('DOMContentLoaded', () => {
         titleScreen.style.display = 'block';
     });
     
-    // ★追加: 音量スライダーのイベントリスナー
+    // 音量スライダーのイベントリスナー
     volumeSlider.addEventListener('input', (event) => {
-        setGlobalVolume(parseFloat(event.target.value));
-    });
-
-    // ★追加: BGM On/Off ボタンのイベントリスナー
-    bgmToggleButton.addEventListener('click', () => {
-        if (backgroundMusic.paused) {
-            backgroundMusic.play().catch(e => console.log("BGM再生エラー:", e));
-        } else {
-            backgroundMusic.pause();
+        const newVolume = parseFloat(event.target.value);
+        setGlobalVolume(newVolume);
+        
+        // ★追加: 音量スライダーを操作した場合、mutedを解除し、BGMをONの状態にする
+        if (newVolume > 0 && backgroundMusic.muted) {
+            backgroundMusic.muted = false;
         }
-        // ★追加: BGMの状態が変更されたらボタンのテキストも更新
+        // BGMが一時停止していたら、再生を試みる (ユーザー操作と見なされるよう、イベントリスナー内で行う)
+        if (currentMode === 'sound' && backgroundMusic.paused) {
+             backgroundMusic.play().catch(e => console.log("BGM再生エラー:", e));
+        }
+
         updateBgmToggleButton();
     });
 
-    // ★追加: BGMの再生/停止イベントをリッスンし、ボタンのテキストを更新 (外部からの操作にも対応)
+    // BGM On/Off ボタンのイベントリスナー
+    bgmToggleButton.addEventListener('click', () => {
+        if (backgroundMusic.paused || backgroundMusic.muted) {
+            // BGMがOffの状態なら、Onにする
+            backgroundMusic.muted = false; // ミュート解除
+            backgroundMusic.volume = parseFloat(volumeSlider.value); // 音量設定
+            backgroundMusic.play().catch(e => console.log("BGM再生エラー:", e));
+        } else {
+            // BGMがOnの状態なら、Offにする (一時停止)
+            backgroundMusic.pause();
+        }
+        updateBgmToggleButton();
+    });
+
+    // BGMの再生/停止イベントをリッスンし、ボタンのテキストを更新 (外部からの操作にも対応)
     backgroundMusic.addEventListener('play', updateBgmToggleButton);
     backgroundMusic.addEventListener('pause', updateBgmToggleButton);
+    // ★追加: BGMのmuted状態が変化した場合もボタンを更新
+    backgroundMusic.addEventListener('volumechange', updateBgmToggleButton);
+
 
     // アプリの起動
     loadQuestions();
+    
+    // ★追加: 起動時に一度BGM再生を試みる (muted状態で)
+    backgroundMusic.play().catch(e => {
+        // 自動再生がブロックされた場合は何もしない
+    });
 });
