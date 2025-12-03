@@ -21,9 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const modeStudySilentButton = document.getElementById('mode-study-silent');
     const modeQuizButton = document.getElementById('mode-quiz');
     
-    // ★修正: 既存のstartButtonを削除し、modeボタンで起動するように変更
-    // const startButton = document.getElementById('start-button'); // 削除
-    
     // テキスト表示要素の取得
     const questionText = document.getElementById('question-text');
     const questionCounter = document.getElementById('question-counter');
@@ -39,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentQuestionIndex = 0; // 現在の問題番号
     let correctAnswersCount = 0; // 正解数
     
-    // ★追加: 現在のモードを保持する変数 (デフォルトは音なし)
+    // ★修正: 現在のモードを保持する変数
     let currentMode = 'silent'; // 'sound', 'silent', 'quiz'
 
     // JSONファイルを読み込む関数
@@ -65,16 +62,19 @@ document.addEventListener('DOMContentLoaded', () => {
         backgroundMusic.volume = volume;
     }
 
+    // ★追加: BGMの再生状態を更新する関数
+    function updateBgmToggleButton() {
+        bgmToggleButton.textContent = backgroundMusic.paused ? 'BGM Off' : 'BGM On';
+    }
+
     // ★追加: 全体音量の初期設定
     setGlobalVolume(volumeSlider.value);
+    updateBgmToggleButton();
 
 
     // 問題を表示する関数
     function showQuestion() {
-        // ★修正: 学習集中モード(音あり)の場合のみBGMを再生
-        if (currentMode === 'sound' && backgroundMusic.paused) {
-            backgroundMusic.play().catch(e => console.log("BGM再生エラー:", e)); // ユーザー操作なしで再生できない場合があるためエラーをキャッチ
-        }
+        // BGMはモード選択ボタンのクリックで既に制御されている
         
         const currentQuestion = questions[currentQuestionIndex];
         
@@ -123,6 +123,11 @@ document.addEventListener('DOMContentLoaded', () => {
             resultButton.style.display = 'none';
         }
         
+        // ★修正: 学習集中モードではBGMを止めない
+        if (currentMode !== 'sound') {
+            backgroundMusic.pause();
+        }
+
         hideAllScreens();
         feedbackScreen.style.display = 'block';
     }
@@ -154,6 +159,8 @@ document.addEventListener('DOMContentLoaded', () => {
         backgroundMusic.pause();
         backgroundMusic.currentTime = 0; // 再生位置をリセット
         
+        updateBgmToggleButton();
+
         hideAllScreens();
         resultScreen.style.display = 'block';
     }
@@ -166,23 +173,23 @@ document.addEventListener('DOMContentLoaded', () => {
         resultScreen.style.display = 'none';
     }
     
-    // ★追加: モード選択時の処理
+    // ★修正: モード選択時の処理 (BGMの自動再生を確保)
     function startQuiz(mode) {
         currentMode = mode;
         currentQuestionIndex = 0;
         correctAnswersCount = 0;
         
-        // BGMの制御
+        // BGMの制御 (ユーザー操作の直後に実行)
         if (mode === 'sound') {
-            backgroundMusic.play().catch(e => {
-                // ユーザー操作なしで自動再生がブロックされた場合
-                console.log("BGM自動再生エラー。ユーザー操作が必要です。", e);
-            });
+            // 学習集中モード(音あり)では、BGMを再生
+            backgroundMusic.play().catch(e => console.log("BGM再生エラー:", e)); 
         } else {
+            // それ以外のモードではBGMを停止
             backgroundMusic.pause();
             backgroundMusic.currentTime = 0;
         }
 
+        updateBgmToggleButton();
         showQuestion();
     }
 
@@ -210,6 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // ★修正: タイトル画面へ戻る際にBGMを停止
         backgroundMusic.pause();
         backgroundMusic.currentTime = 0;
+        updateBgmToggleButton();
         
         hideAllScreens();
         titleScreen.style.display = 'block';
@@ -227,7 +235,13 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             backgroundMusic.pause();
         }
+        // ★追加: BGMの状態が変更されたらボタンのテキストも更新
+        updateBgmToggleButton();
     });
+
+    // ★追加: BGMの再生/停止イベントをリッスンし、ボタンのテキストを更新 (外部からの操作にも対応)
+    backgroundMusic.addEventListener('play', updateBgmToggleButton);
+    backgroundMusic.addEventListener('pause', updateBgmToggleButton);
 
     // アプリの起動
     loadQuestions();

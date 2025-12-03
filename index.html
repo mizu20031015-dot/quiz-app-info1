@@ -13,6 +13,7 @@
         <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.5">
         <button id="bgm-toggle-button">BGM On/Off</button>
     </div>
+
     <div id="title-screen" class="screen">
         <h1>Webブラウザ クイズゲーム</h1>
         <p id="total-questions"></p>
@@ -22,7 +23,8 @@
             <button id="mode-study-silent" class="mode-button">学習集中モード (音なし)</button>
             <button id="mode-quiz" class="mode-button">知識確認クイズモード</button>
         </div>
-        </div>
+        
+    </div>
 
     <div id="quiz-screen" class="screen" style="display:none;">
         <h2 id="quiz-genre">情報Iクイズ</h2>
@@ -59,7 +61,9 @@
     
     <audio id="background-music" loop>
         <source src="rain_sound_01_60min.mp3" type="audio/mp3">
+        お使いのブラウザは音声ファイルをサポートしていません。
     </audio>
+    
     <script src="script.js"></script>
 </body>
 </html>
