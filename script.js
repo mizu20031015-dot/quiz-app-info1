@@ -5,13 +5,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const feedbackScreen = document.getElementById('feedback-screen');
     const resultScreen = document.getElementById('result-screen');
 
-    // ボタン要素の取得
-    const startButton = document.getElementById('start-button');
+    // ボタン要素の取得 (既存)
     const optionButtons = document.querySelectorAll('.option-btn');
     const nextButton = document.getElementById('next-button');
     const resultButton = document.getElementById('result-button');
     const restartButton = document.getElementById('restart-button');
 
+    // ★追加: 音声関連要素
+    const volumeSlider = document.getElementById('volume-slider');
+    const bgmToggleButton = document.getElementById('bgm-toggle-button');
+    const backgroundMusic = document.getElementById('background-music');
+
+    // ★追加: モード選択ボタン
+    const modeStudySoundButton = document.getElementById('mode-study-sound');
+    const modeStudySilentButton = document.getElementById('mode-study-silent');
+    const modeQuizButton = document.getElementById('mode-quiz');
+    
+    // ★修正: 既存のstartButtonを削除し、modeボタンで起動するように変更
+    // const startButton = document.getElementById('start-button'); // 削除
+    
     // テキスト表示要素の取得
     const questionText = document.getElementById('question-text');
     const questionCounter = document.getElementById('question-counter');
@@ -26,6 +38,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let questions = []; // 問題データを格納する配列
     let currentQuestionIndex = 0; // 現在の問題番号
     let correctAnswersCount = 0; // 正解数
+    
+    // ★追加: 現在のモードを保持する変数 (デフォルトは音なし)
+    let currentMode = 'silent'; // 'sound', 'silent', 'quiz'
 
     // JSONファイルを読み込む関数
     async function loadQuestions() {
@@ -43,9 +58,24 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('問題データの読み込みに失敗しました。Live Serverを使用しているか確認してください。');
         }
     }
+    
+    // ★追加: BGMの音量を設定する関数 (音量スライダーと同期)
+    function setGlobalVolume(volume) {
+        // 現在、BGMのみなので、BGMに適用
+        backgroundMusic.volume = volume;
+    }
+
+    // ★追加: 全体音量の初期設定
+    setGlobalVolume(volumeSlider.value);
+
 
     // 問題を表示する関数
     function showQuestion() {
+        // ★修正: 学習集中モード(音あり)の場合のみBGMを再生
+        if (currentMode === 'sound' && backgroundMusic.paused) {
+            backgroundMusic.play().catch(e => console.log("BGM再生エラー:", e)); // ユーザー操作なしで再生できない場合があるためエラーをキャッチ
+        }
+        
         const currentQuestion = questions[currentQuestionIndex];
         
         // 問題カウンターを「問〇」形式で表示
@@ -120,6 +150,10 @@ document.addEventListener('DOMContentLoaded', () => {
         resultScore.textContent = `${correctAnswersCount}/${totalQuestions}`;
         resultMessage.textContent = message;
         
+        // ★修正: 結果画面ではBGMを停止
+        backgroundMusic.pause();
+        backgroundMusic.currentTime = 0; // 再生位置をリセット
+        
         hideAllScreens();
         resultScreen.style.display = 'block';
     }
@@ -132,12 +166,32 @@ document.addEventListener('DOMContentLoaded', () => {
         resultScreen.style.display = 'none';
     }
     
-    // イベントリスナーの設定
-    startButton.addEventListener('click', () => {
+    // ★追加: モード選択時の処理
+    function startQuiz(mode) {
+        currentMode = mode;
         currentQuestionIndex = 0;
         correctAnswersCount = 0;
+        
+        // BGMの制御
+        if (mode === 'sound') {
+            backgroundMusic.play().catch(e => {
+                // ユーザー操作なしで自動再生がブロックされた場合
+                console.log("BGM自動再生エラー。ユーザー操作が必要です。", e);
+            });
+        } else {
+            backgroundMusic.pause();
+            backgroundMusic.currentTime = 0;
+        }
+
         showQuestion();
-    });
+    }
+
+
+    // イベントリスナーの設定
+    // ★修正: スタートボタンをモード選択ボタンに置き換え
+    modeStudySoundButton.addEventListener('click', () => startQuiz('sound'));
+    modeStudySilentButton.addEventListener('click', () => startQuiz('silent'));
+    modeQuizButton.addEventListener('click', () => startQuiz('quiz')); // 知識確認クイズモードは次回以降実装
 
     optionButtons.forEach((button, index) => {
         button.addEventListener('click', () => {
@@ -153,8 +207,26 @@ document.addEventListener('DOMContentLoaded', () => {
     resultButton.addEventListener('click', showResults);
     
     restartButton.addEventListener('click', () => {
+        // ★修正: タイトル画面へ戻る際にBGMを停止
+        backgroundMusic.pause();
+        backgroundMusic.currentTime = 0;
+        
         hideAllScreens();
         titleScreen.style.display = 'block';
+    });
+    
+    // ★追加: 音量スライダーのイベントリスナー
+    volumeSlider.addEventListener('input', (event) => {
+        setGlobalVolume(parseFloat(event.target.value));
+    });
+
+    // ★追加: BGM On/Off ボタンのイベントリスナー
+    bgmToggleButton.addEventListener('click', () => {
+        if (backgroundMusic.paused) {
+            backgroundMusic.play().catch(e => console.log("BGM再生エラー:", e));
+        } else {
+            backgroundMusic.pause();
+        }
     });
 
     // アプリの起動
