@@ -255,6 +255,9 @@ h2 {
     width: 85vw;
     padding: 30px;
     position: relative;
+    /* ★追加: 高さを画面の90%に制限し、はみ出た場合はスクロール可能にする */
+    max-height: 90vh; 
+    overflow-y: auto; 
 }
 
 /* 閉じるボタン (X印) */
