@@ -14,13 +14,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultButton = document.getElementById('result-button');
     const restartButton = document.getElementById('restart-button');
 
-    // 音声関連要素
-    const backgroundMusic = document.getElementById('background-music'); // 学習集中モード (自然音BGM)
-    const quizBackgroundMusic = document.getElementById('quiz-background-music'); // 知識確認クイズモード用BGM
+    // 音声関連要素 (IDはindex.htmlの変更に合わせて変更なし)
+    const backgroundMusic = document.getElementById('background-music'); 
+    const quizBackgroundMusic = document.getElementById('quiz-background-music'); 
     const sfxQuestion = document.getElementById('sfx-question');
     const sfxCorrect = document.getElementById('sfx-correct');
     const sfxIncorrect = document.getElementById('sfx-incorrect');
-    const sfxDrumroll = document.getElementById('sfx-drumroll'); // 結果発表用ドラムロール
+    const sfxDrumroll = document.getElementById('sfx-drumroll');
 
     // 設定画面UI
     const settingsVolumeSlider = document.getElementById('settings-volume-slider');
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const correctAnswerText = document.getElementById('correct-answer');
     const explanationTitle = document.getElementById('explanation-title');
     const explanationText = document.getElementById('explanation-text');
-    const resultDetails = document.getElementById('result-details'); // 結果詳細コンテナ
+    const resultDetails = document.getElementById('result-details');
     const resultScore = document.getElementById('result-score');
     const resultMessage = document.getElementById('result-message');
 
@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentQuestionIndex = 0; 
     let correctAnswersCount = 0; 
     
-    let currentMode = 'silent'; // 'sound', 'silent', 'quiz'
+    let currentMode = 'silent'; 
     let savedVolume = parseFloat(localStorage.getItem('quizAppVolume')) || 0.5;
     let bgmFadeTimer = null; 
 
@@ -100,6 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
             bgmToControl.play()
                 .catch(error => {
                     console.error("BGM再生ブロック/エラー:", error);
+                    // エラーが出ても画面遷移は継続し、アラートでユーザーに手動操作を促す
                     alert('【BGM再生失敗】ブラウザのセキュリティ設定により、BGMの自動再生がブロックされました。\nお手数ですが、設定画面の「BGM On」ボタンをタップして再生してください。');
                     bgmToControl.pause();
                     bgmToControl.muted = true;
@@ -160,13 +161,11 @@ document.addEventListener('DOMContentLoaded', () => {
             sfxElement.play().then(() => {
                 // 効果音再生後にBGMをフェードインして復帰
                 sfxElement.onended = () => {
-                    // 効果音をリセット
                     sfxElement.currentTime = 0;
                     fadeBgm(quizBackgroundMusic, 'in');
                 };
             }).catch(e => {
                 console.error("SFX再生エラー:", e);
-                // SFX再生失敗時もBGMをすぐに復帰
                 fadeBgm(quizBackgroundMusic, 'in');
             });
         });
@@ -187,11 +186,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 知識確認クイズモードでは出題時に効果音を鳴らす
         if (currentMode === 'quiz') {
-            // SFXはBGMのフェードアウトを伴わないシンプルな再生
             sfxQuestion.volume = savedVolume;
             sfxQuestion.play().catch(e => console.error("Question SFX error:", e));
         }
-
 
         hideAllScreens();
         quizScreen.style.display = 'block';
@@ -227,21 +224,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // 知識確認クイズモードはSFX再生後に画面遷移
         if (currentMode === 'quiz') {
             const sfxToPlay = isCorrect ? sfxCorrect : sfxIncorrect;
-            // 効果音再生とBGM制御
             playSfxWithBgmControl(sfxToPlay);
-
-            // 画面遷移は即座に行う (SFXが鳴り終わるのを待たずにフィードバック画面へ)
-            // SFX再生後の画面遷移はユーザー体験上、煩雑になるため、SFX再生と並行して画面遷移させる
-            hideAllScreens();
-            feedbackScreen.style.display = 'block';
-            return;
         }
 
-        // 学習集中モード(音あり)以外ではBGMを停止
-        if (currentMode !== 'sound') {
-            backgroundMusic.pause();
-        }
-
+        // 画面遷移は即座に行う
         hideAllScreens();
         feedbackScreen.style.display = 'block';
     }
@@ -290,9 +276,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     resultDetails.style.display = 'block';
                 }, delayTimeMs);
 
-                // ドラムロール終了後の処理
                 sfxDrumroll.onended = () => {
-                    // 自動停止（表示はディレイで既に完了）
+                    // ドラムロール終了後、2秒ディレイが終わっていなければ表示を確実にする
+                    if (resultDetails.style.display === 'none') {
+                         resultDetails.style.display = 'block';
+                    }
                 };
             }).catch(e => {
                 console.error("Drumroll SFX error:", e);
