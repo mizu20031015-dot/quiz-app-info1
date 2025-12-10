@@ -42,9 +42,7 @@ h2 {
     margin-bottom: 0px; 
 }
 
-/* ★修正: モード選択ボタンのスタイルを元のスタートボタンのスタイルに合わせる */
-/* ボタン（START、次へ、結果へ） */
-/* 元の#start-button, #next-button, #result-button, #restart-button の設定を統合 */
+/* ★修正: ボタン（次へ、結果へ、タイトルへ） */
 #next-button, #result-button, #restart-button {
     padding: 30px 60px; 
     font-size: 2.5em; 
@@ -61,15 +59,15 @@ h2 {
     background-color: #990000;
 }
 
-/* モード選択ボタンのコンテナ（元のstart-buttonの配置を再現するため、マージンのみ指定） */
+/* モード選択ボタンのコンテナ */
 #mode-selection-buttons {
     display: flex;
     flex-direction: column;
-    gap: 20px; /* ボタン間の隙間 */
-    margin-top: 50px; /* 元のスタートボタンと同じ上マージン */
+    gap: 20px; 
+    margin-top: 50px; 
 }
 
-/* モード選択ボタン（元のスタートボタンのサイズを流用し、テキストを小さくして3つ並べる） */
+/* モード選択ボタン */
 .mode-button {
     padding: 20px 40px; 
     font-size: 2em; 
@@ -211,48 +209,124 @@ h2 {
     background-color: #5a6268;
 }
 
-/* --- ★追加: 音量コントロールとモード選択ボタンのスタイルを調整 --- */
-#volume-controls {
-    position: fixed; 
+/* ========================================================= */
+/* --- ★追加: 設定画面とボタンのスタイル --- */
+/* ========================================================= */
+
+/* 全画面に固定表示される設定ボタン */
+#settings-open-button {
+    position: fixed;
     top: 10px;
     right: 10px;
-    /* 背景色を半透明の白に変更し、より目立たないようにする */
-    background-color: rgba(255, 255, 255, 0.6); 
     padding: 8px 15px;
-    border-radius: 10px;
-    z-index: 1000;
-    font-size: 0.9em;
-    display: flex;
-    align-items: center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-#volume-controls label {
-    font-weight: bold;
-    color: #333;
-    margin-right: 5px;
-}
-
-#volume-slider {
-    width: 100px;
-    margin-right: 10px;
-}
-
-#bgm-toggle-button {
-    padding: 5px 10px;
-    font-size: 0.8em;
+    font-size: 1.2em;
     cursor: pointer;
     border: 1px solid #CC0000;
-    border-radius: 5px;
-    color: #CC0000;
-    background-color: white;
-    transition: all 0.2s;
+    border-radius: 10px;
+    color: white;
+    background-color: #CC0000;
+    z-index: 1000;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-#bgm-toggle-button:hover {
-    background-color: #f0f0f0;
+#settings-open-button:hover {
+    background-color: #990000;
 }
-/* --- ★追加ここまで --- */
+
+
+/* 設定画面全体のオーバーレイ */
+#settings-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); /* 半透明の黒で背後を覆う */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+/* 設定画面の本体 */
+#settings-screen {
+    max-width: 600px; /* 設定画面の幅を固定 */
+    width: 85vw;
+    padding: 30px;
+    position: relative;
+}
+
+/* 閉じるボタン (X印) */
+#settings-close-button {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 2.5em;
+    cursor: pointer;
+    color: #333;
+}
+
+#settings-close-button:hover {
+    color: #CC0000;
+}
+
+/* 設定項目のスタイル */
+.setting-item {
+    text-align: left;
+    margin-top: 30px;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.setting-item h3 {
+    font-size: 2em;
+    margin-bottom: 15px;
+    color: #111;
+}
+
+.setting-controls {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.setting-controls label {
+    font-size: 1.5em;
+    font-weight: 500;
+    margin-right: 15px;
+    min-width: 100px;
+}
+
+/* モバイルフレンドリーな拡張されたスライダー */
+#settings-volume-slider {
+    flex-grow: 1; /* 親要素の幅いっぱいに広がる */
+    height: 10px;
+}
+
+#settings-bgm-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+#settings-bgm-buttons button {
+    padding: 15px 30px;
+    font-size: 1.5em;
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    background-color: #CC0000;
+    transition: background-color 0.2s;
+}
+
+#settings-bgm-buttons button:hover {
+    background-color: #990000;
+}
 
 
 /* ========================================================= */
@@ -307,26 +381,40 @@ h2 {
         font-size: 1.6em; 
     }
 
-    /* 音量コントロールのモバイル調整 */
-    #volume-controls {
+    /* --- 設定画面のモバイル調整 --- */
+    #settings-open-button {
         top: 5px;
         right: 5px;
-        padding: 5px 10px;
-        font-size: 0.7em;
+        padding: 6px 12px;
+        font-size: 1em;
     }
-    #volume-slider {
-        width: 60px;
-        margin-right: 5px;
+    
+    #settings-screen {
+        padding: 20px;
+        max-width: 90vw;
     }
-    #bgm-toggle-button {
-        padding: 3px 6px;
-        font-size: 0.7em;
+    
+    #settings-close-button {
+        font-size: 2em;
+    }
+
+    .setting-item h3 {
+        font-size: 1.5em;
+    }
+    
+    .setting-controls label {
+        font-size: 1.2em;
+        min-width: 80px;
+    }
+    
+    #settings-bgm-buttons button {
+        padding: 10px 20px;
+        font-size: 1.2em;
     }
 }
 
 /* ========================================================= */
 /* --- 横画面 (Landscape) 特化の調整 --- */
-/* 横画面の極端に短い高さに対応するため、解説・結果画面の要素を密着させる */
 /* ========================================================= */
 @media screen and (orientation: landscape) and (max-width: 1024px) {
     
@@ -360,13 +448,13 @@ h2 {
     
     /* 正誤判定テキスト (正解/不正解) */
     #feedback-text {
-        font-size: 2.0em; /* PCの3.5emから大幅縮小 */
+        font-size: 2.0em; 
         margin: 10px 0;
     }
 
     /* 正解表示 (例: 3. 情報落ち) */
     #correct-answer {
-        font-size: 1.5em; /* PCの2.2emから大幅縮小 */
+        font-size: 1.5em; 
         margin-bottom: 10px;
     }
 
@@ -381,7 +469,7 @@ h2 {
 
     /* 結果画面のスコア */
     #result-score {
-        font-size: 3em; /* PCの5emから縮小 */
+        font-size: 3em; 
         margin-bottom: 5px;
     }
     

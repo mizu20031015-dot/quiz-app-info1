@@ -8,11 +8,7 @@
 </head>
 <body>
 
-    <div id="volume-controls">
-        <label for="volume-slider">音量調節：</label>
-        <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.5">
-        <button id="bgm-toggle-button">BGM On/Off</button>
-    </div>
+    <button id="settings-open-button">設定</button>
 
     <div id="title-screen" class="screen">
         <h1>Webブラウザ クイズゲーム</h1>
@@ -59,8 +55,32 @@
         <button id="restart-button">タイトルへ→</button>
     </div>
     
+    <div id="settings-overlay" style="display: none;">
+        <div id="settings-screen" class="screen">
+            <button id="settings-close-button">×</button>
+            <h2>設定</h2>
+            
+            <div class="setting-item">
+                <h3>BGM設定</h3>
+                <div class="setting-controls">
+                    <label for="settings-volume-slider">音量調節：</label>
+                    <input type="range" id="settings-volume-slider" min="0" max="1" step="0.01" value="0.5">
+                </div>
+                <div id="settings-bgm-buttons">
+                    <button id="settings-bgm-on">BGM On</button>
+                    <button id="settings-bgm-off">BGM Off</button>
+                </div>
+                </div>
+
+            <div class="setting-item">
+                <h3>その他</h3>
+                <p>（ここにクレジットやその他の設定項目が追加されます）</p>
+            </div>
+        </div>
+    </div>
     <audio id="background-music" loop muted>
         <source src="rain_sound_01_60min.mp3" type="audio/mp3">
+        お使いのブラウザは音声ファイルをサポートしていません。
     </audio>
     
     <script src="script.js"></script>
