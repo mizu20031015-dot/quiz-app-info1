@@ -493,4 +493,9 @@ h2 {
         padding: 10px 20px;
         font-size: 1.2em;
     }
+
+    /* ドラムロール再生前に結果の詳細（スコア、メッセージ、ボタン）を非表示にする */
+    #result-details {
+        display: none;
+    }
 }

@@ -50,9 +50,11 @@
 
     <div id="result-screen" class="screen" style="display:none;">
         <h1>結果</h1>
-        <p id="result-score"></p>
-        <p id="result-message"></p>
-        <button id="restart-button">タイトルへ→</button>
+        <div id="result-details">
+            <p id="result-score"></p>
+            <p id="result-message"></p>
+            <button id="restart-button">タイトルへ→</button>
+        </div>
     </div>
     
     <div id="settings-overlay" style="display: none;">
@@ -70,7 +72,7 @@
                     <button id="settings-bgm-on">BGM On</button>
                     <button id="settings-bgm-off">BGM Off</button>
                 </div>
-                </div>
+            </div>
 
             <div class="setting-item">
                 <h3>その他</h3>
@@ -83,6 +85,21 @@
         お使いのブラウザは音声ファイルをサポートしていません。
     </audio>
     
+    <audio id="quiz-background-music" loop muted>
+        <source src="pop_step!!.mp3" type="audio/mp3">
+    </audio>
+    <audio id="sfx-question">
+        <source src="Quiz-Question03-1(Low).mp3" type="audio/mp3">
+    </audio>
+    <audio id="sfx-correct">
+        <source src="Quiz-Ding_Dong02-1(Fast).mp3" type="audio/mp3">
+    </audio>
+    <audio id="sfx-incorrect">
+        <source src="Quiz-Buzzer02-1(Mid).mp3" type="audio/mp3">
+    </audio>
+    <audio id="sfx-drumroll">
+        <source src="Quiz-Results01-1.mp3" type="audio/mp3">
+    </audio>
     <script src="script.js"></script>
 </body>
 </html>

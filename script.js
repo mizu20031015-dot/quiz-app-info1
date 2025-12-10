@@ -4,20 +4,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const quizScreen = document.getElementById('quiz-screen');
     const feedbackScreen = document.getElementById('feedback-screen');
     const resultScreen = document.getElementById('result-screen');
-    // ★追加: 設定画面要素
     const settingsOpenButton = document.getElementById('settings-open-button');
     const settingsOverlay = document.getElementById('settings-overlay');
     const settingsCloseButton = document.getElementById('settings-close-button');
 
-    // ボタン要素の取得 (既存)
+    // ボタン要素の取得
     const optionButtons = document.querySelectorAll('.option-btn');
     const nextButton = document.getElementById('next-button');
     const resultButton = document.getElementById('result-button');
     const restartButton = document.getElementById('restart-button');
 
     // 音声関連要素
-    const backgroundMusic = document.getElementById('background-music');
-    // ★修正: 設定画面内のUI
+    const backgroundMusic = document.getElementById('background-music'); // 学習集中モード (自然音BGM)
+    const quizBackgroundMusic = document.getElementById('quiz-background-music'); // 知識確認クイズモード用BGM
+    const sfxQuestion = document.getElementById('sfx-question');
+    const sfxCorrect = document.getElementById('sfx-correct');
+    const sfxIncorrect = document.getElementById('sfx-incorrect');
+    const sfxDrumroll = document.getElementById('sfx-drumroll'); // 結果発表用ドラムロール
+
+    // 設定画面UI
     const settingsVolumeSlider = document.getElementById('settings-volume-slider');
     const settingsBgmOnButton = document.getElementById('settings-bgm-on');
     const settingsBgmOffButton = document.getElementById('settings-bgm-off');
@@ -35,16 +40,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const correctAnswerText = document.getElementById('correct-answer');
     const explanationTitle = document.getElementById('explanation-title');
     const explanationText = document.getElementById('explanation-text');
+    const resultDetails = document.getElementById('result-details'); // 結果詳細コンテナ
     const resultScore = document.getElementById('result-score');
     const resultMessage = document.getElementById('result-message');
 
-    let questions = []; // 問題データを格納する配列
-    let currentQuestionIndex = 0; // 現在の問題番号
-    let correctAnswersCount = 0; // 正解数
+    let questions = []; 
+    let currentQuestionIndex = 0; 
+    let correctAnswersCount = 0; 
     
     let currentMode = 'silent'; // 'sound', 'silent', 'quiz'
-    // ★追加: 記憶された音量を保持 (localStorageから取得、なければ0.5)
     let savedVolume = parseFloat(localStorage.getItem('quizAppVolume')) || 0.5;
+    let bgmFadeTimer = null; 
 
 
     // JSONファイルを読み込む関数
@@ -53,7 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch('questions.json');
             questions = await response.json();
             
-            // 問題総数をタイトル画面に設定
             if (questions.length > 0) {
                 totalQuestionsText.textContent = `全${questions.length}問`;
             }
@@ -64,10 +69,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // ★修正: BGMの音量を設定し、localStorageに保存する関数
+    // BGMの音量を設定し、localStorageに保存する関数
     function setGlobalVolume(volume, save = true) {
         // 音量を設定
         backgroundMusic.volume = volume;
+        quizBackgroundMusic.volume = volume;
+
         // スライダーにも反映
         settingsVolumeSlider.value = volume;
         // 記憶された音量を更新 (音量が0でない場合のみ保存)
@@ -77,28 +84,93 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ★追加: BGM再生処理 (Promiseとエラーハンドリング)
-    function playBgm() {
-        backgroundMusic.muted = false; // 強制的にミュートを解除
-        // 記憶された音量を復元
-        setGlobalVolume(savedVolume, false); 
-        
-        return backgroundMusic.play()
-            .then(() => {
-                // 再生成功
-            })
-            .catch(error => {
-                // 再生失敗（ブロックされた場合）
-                console.error("BGM再生ブロック:", error);
-                alert('【BGM再生失敗】ブラウザのセキュリティ設定により、BGMの自動再生がブロックされました。\nお手数ですが、設定画面の「BGM On」ボタンをタップして再生してください。');
-                backgroundMusic.pause();
-                backgroundMusic.muted = true; // 再生失敗時はミュートに戻す
-            });
+    // BGMの再生/一時停止 (モードと音声種別を指定)
+    function toggleBgm(action, type = 'natural') {
+        const bgmToControl = (type === 'natural') ? backgroundMusic : quizBackgroundMusic;
+        const otherBgm = (type === 'natural') ? quizBackgroundMusic : backgroundMusic;
+
+        // 他のBGMを停止
+        otherBgm.pause();
+        otherBgm.currentTime = 0;
+
+        if (action === 'play') {
+            bgmToControl.muted = false;
+            // 記憶された音量を復元して再生
+            bgmToControl.volume = savedVolume; 
+            bgmToControl.play()
+                .catch(error => {
+                    console.error("BGM再生ブロック/エラー:", error);
+                    alert('【BGM再生失敗】ブラウザのセキュリティ設定により、BGMの自動再生がブロックされました。\nお手数ですが、設定画面の「BGM On」ボタンをタップして再生してください。');
+                    bgmToControl.pause();
+                    bgmToControl.muted = true;
+                });
+        } else {
+            bgmToControl.pause();
+            bgmToControl.currentTime = 0;
+            // 停止時、BGMの音量を0にする (ミュートと同じ効果)
+            bgmToControl.volume = 0; 
+        }
     }
 
+    // フェードイン/アウト機能 (効果音再生時のBGM制御用)
+    function fadeBgm(audioElement, direction, callback = null) {
+        if (bgmFadeTimer) clearInterval(bgmFadeTimer);
+        const targetVolume = (direction === 'in') ? savedVolume : 0;
+        const step = 0.05;
 
-    // BGMの初期音量設定とスライダー同期
-    setGlobalVolume(savedVolume, false);
+        if (direction === 'in' && audioElement.paused) {
+            audioElement.play().catch(e => console.error("Fade-in play error:", e));
+        }
+
+        bgmFadeTimer = setInterval(() => {
+            let volume = audioElement.volume;
+            let finished = false;
+
+            if (direction === 'in') {
+                volume += step;
+                if (volume >= targetVolume) {
+                    volume = targetVolume;
+                    finished = true;
+                }
+            } else { // direction === 'out'
+                volume -= step;
+                if (volume <= targetVolume) {
+                    volume = targetVolume;
+                    finished = true;
+                    audioElement.pause();
+                }
+            }
+            audioElement.volume = Math.max(0, Math.min(savedVolume, volume));
+
+            if (finished) {
+                clearInterval(bgmFadeTimer);
+                if (callback) callback();
+            }
+        }, 50);
+    }
+    
+    // 効果音再生とBGM制御 (知識確認クイズモード専用)
+    function playSfxWithBgmControl(sfxElement) {
+        // BGMをフェードアウトして一時停止
+        fadeBgm(quizBackgroundMusic, 'out', () => {
+            quizBackgroundMusic.pause();
+            
+            // 効果音の再生
+            sfxElement.volume = savedVolume;
+            sfxElement.play().then(() => {
+                // 効果音再生後にBGMをフェードインして復帰
+                sfxElement.onended = () => {
+                    // 効果音をリセット
+                    sfxElement.currentTime = 0;
+                    fadeBgm(quizBackgroundMusic, 'in');
+                };
+            }).catch(e => {
+                console.error("SFX再生エラー:", e);
+                // SFX再生失敗時もBGMをすぐに復帰
+                fadeBgm(quizBackgroundMusic, 'in');
+            });
+        });
+    }
 
 
     // 問題を表示する関数
@@ -106,13 +178,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentQuestion = questions[currentQuestionIndex];
         
         questionCounter.textContent = `問${currentQuestionIndex + 1}`;
-        
         questionText.textContent = currentQuestion.question;
         
         optionButtons.forEach((button, index) => {
             button.textContent = currentQuestion.options[index];
             button.disabled = false;
         });
+
+        // 知識確認クイズモードでは出題時に効果音を鳴らす
+        if (currentMode === 'quiz') {
+            // SFXはBGMのフェードアウトを伴わないシンプルな再生
+            sfxQuestion.volume = savedVolume;
+            sfxQuestion.play().catch(e => console.error("Question SFX error:", e));
+        }
+
 
         hideAllScreens();
         quizScreen.style.display = 'block';
@@ -145,6 +224,19 @@ document.addEventListener('DOMContentLoaded', () => {
             resultButton.style.display = 'none';
         }
         
+        // 知識確認クイズモードはSFX再生後に画面遷移
+        if (currentMode === 'quiz') {
+            const sfxToPlay = isCorrect ? sfxCorrect : sfxIncorrect;
+            // 効果音再生とBGM制御
+            playSfxWithBgmControl(sfxToPlay);
+
+            // 画面遷移は即座に行う (SFXが鳴り終わるのを待たずにフィードバック画面へ)
+            // SFX再生後の画面遷移はユーザー体験上、煩雑になるため、SFX再生と並行して画面遷移させる
+            hideAllScreens();
+            feedbackScreen.style.display = 'block';
+            return;
+        }
+
         // 学習集中モード(音あり)以外ではBGMを停止
         if (currentMode !== 'sound') {
             backgroundMusic.pause();
@@ -160,7 +252,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const scorePercentage = (correctAnswersCount / totalQuestions) * 100;
         let message = '';
 
-        // ★★★ 5段階評価のロジックは変更なし ★★★
         if (scorePercentage > 80) { 
             message = '完璧！情報Iマスター！';
         } else if (scorePercentage > 60) { 
@@ -172,16 +263,46 @@ document.addEventListener('DOMContentLoaded', () => {
         } else { 
             message = '焦らず！まずはスタートライン！';
         }
-        // ★★★ ロジック終了 ★★★
         
         resultScore.textContent = `${correctAnswersCount}/${totalQuestions}`;
         resultMessage.textContent = message;
         
-        backgroundMusic.pause();
-        backgroundMusic.currentTime = 0; 
+        // BGMを停止
+        toggleBgm('pause', 'natural');
+        toggleBgm('pause', 'quiz');
         
+        // 結果詳細（スコア、メッセージ、ボタン）を非表示にし、結果画面に遷移
+        resultDetails.style.display = 'none'; 
         hideAllScreens();
         resultScreen.style.display = 'block';
+
+        // 知識確認クイズモードの場合、ドラムロールを鳴らしてディレイをかける
+        if (currentMode === 'quiz') {
+            sfxDrumroll.volume = savedVolume;
+            sfxDrumroll.currentTime = 0;
+            
+            sfxDrumroll.play().then(() => {
+                // ★ディレイロジック: シンバル音に合わせて2秒後に結果を表示
+                const delayTimeMs = 2000; 
+                
+                setTimeout(() => {
+                    // 2秒後にスコア、メッセージ、ボタンを表示
+                    resultDetails.style.display = 'block';
+                }, delayTimeMs);
+
+                // ドラムロール終了後の処理
+                sfxDrumroll.onended = () => {
+                    // 自動停止（表示はディレイで既に完了）
+                };
+            }).catch(e => {
+                console.error("Drumroll SFX error:", e);
+                // SFX再生失敗時はすぐに結果を表示
+                resultDetails.style.display = 'block';
+            });
+        } else {
+            // 学習集中モードの場合、すぐに結果を表示
+            resultDetails.style.display = 'block';
+        }
     }
 
     // すべての画面を非表示にする関数 (設定オーバーレイは別制御)
@@ -193,21 +314,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // モード選択時の初期設定
-    function initializeQuiz(mode, audioControl) {
+    function initializeQuiz(mode, audioType) {
         currentMode = mode;
         currentQuestionIndex = 0;
         correctAnswersCount = 0;
         
         // BGM制御
-        if (audioControl === 'play') {
-            playBgm();
+        if (audioType === 'natural') {
+            toggleBgm('play', 'natural');
+        } else if (audioType === 'quiz') {
+            toggleBgm('play', 'quiz');
         } else {
-            backgroundMusic.pause();
-            backgroundMusic.currentTime = 0;
-            // BGMがOffのモードでは、音量をゼロにする（ミュートと同じ効果）
-            if (mode !== 'quiz') {
-                 backgroundMusic.volume = 0; 
-            }
+            toggleBgm('pause', 'natural');
+            toggleBgm('pause', 'quiz');
         }
         
         showQuestion();
@@ -219,9 +338,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===========================================
 
     // モード選択ボタン
-    modeStudySoundButton.addEventListener('click', () => initializeQuiz('sound', 'play'));
-    modeStudySilentButton.addEventListener('click', () => initializeQuiz('silent', 'pause'));
-    modeQuizButton.addEventListener('click', () => initializeQuiz('quiz', 'pause')); // 知識確認クイズモードは次回実装のため、一旦停止
+    modeStudySoundButton.addEventListener('click', () => initializeQuiz('sound', 'natural'));
+    modeStudySilentButton.addEventListener('click', () => initializeQuiz('silent', 'none'));
+    modeQuizButton.addEventListener('click', () => initializeQuiz('quiz', 'quiz')); // 知識確認クイズモード (Quiz BGMを使用)
 
     optionButtons.forEach((button, index) => {
         button.addEventListener('click', () => {
@@ -237,8 +356,9 @@ document.addEventListener('DOMContentLoaded', () => {
     resultButton.addEventListener('click', showResults);
     
     restartButton.addEventListener('click', () => {
-        backgroundMusic.pause();
-        backgroundMusic.currentTime = 0;
+        // BGMを完全に停止
+        toggleBgm('pause', 'natural');
+        toggleBgm('pause', 'quiz');
         
         hideAllScreens();
         titleScreen.style.display = 'block';
@@ -248,8 +368,16 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // 設定を開く
     settingsOpenButton.addEventListener('click', () => {
-        // 設定画面を開く際、現在の音量設定をスライダーに反映
-        const currentVolume = backgroundMusic.muted ? 0 : backgroundMusic.volume;
+        // BGMの状態に応じてスライダー値を反映 (再生中のBGMが優先)
+        let currentVolume = 0;
+        if (!backgroundMusic.paused) {
+            currentVolume = backgroundMusic.volume;
+        } else if (!quizBackgroundMusic.paused) {
+            currentVolume = quizBackgroundMusic.volume;
+        } else {
+            currentVolume = savedVolume;
+        }
+
         settingsVolumeSlider.value = currentVolume;
         
         settingsOverlay.style.display = 'flex';
@@ -262,15 +390,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // BGM On (記憶された音量で再生)
     settingsBgmOnButton.addEventListener('click', () => {
-        // BGMをONにする場合、現在のモードが'sound'でなくてもBGMを流す
-        // ただし、画面遷移時に'sound'でなければ止まる
-        playBgm();
+        // 現在のモードに合わせてBGMを再生
+        const type = (currentMode === 'quiz') ? 'quiz' : 'natural';
+        toggleBgm('play', type);
     });
 
     // BGM Off (音量を0にし、停止)
     settingsBgmOffButton.addEventListener('click', () => {
-        backgroundMusic.pause();
-        backgroundMusic.currentTime = 0;
+        toggleBgm('pause', 'natural');
+        toggleBgm('pause', 'quiz');
+        
         // スライダーを0に移動
         setGlobalVolume(0, false); 
     });
@@ -281,9 +410,13 @@ document.addEventListener('DOMContentLoaded', () => {
         setGlobalVolume(newVolume, true); // リアルタイムで反映＆保存
 
         // BGMが停止している状態でスライダーを動かしたら再生を試みる
-        if (newVolume > 0 && backgroundMusic.paused && currentMode === 'sound') {
-             backgroundMusic.muted = false;
-             backgroundMusic.play().catch(e => console.log("BGM再生エラー(スライダー操作):", e));
+        if (newVolume > 0 && (backgroundMusic.paused && quizBackgroundMusic.paused)) {
+             const type = (currentMode === 'quiz') ? 'quiz' : 'natural';
+             const bgmToControl = (type === 'natural') ? backgroundMusic : quizBackgroundMusic;
+
+             // BGMをミュート解除し、再生を試みる
+             bgmToControl.muted = false;
+             bgmToControl.play().catch(e => console.log("BGM再生エラー(スライダー操作):", e));
         }
     });
 
@@ -292,4 +425,5 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // 起動時にBGMのmutedを強制的にONにし、ユーザー操作を待つ
     backgroundMusic.muted = true;
+    quizBackgroundMusic.muted = true;
 });
