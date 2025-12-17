@@ -19,7 +19,6 @@
             <button id="mode-study-silent" class="mode-button">学習集中モード (音なし)</button>
             <button id="mode-quiz" class="mode-button">知識確認クイズモード</button>
         </div>
-        
     </div>
 
     <div id="quiz-screen" class="screen" style="display:none;">
@@ -50,14 +49,12 @@
 
     <div id="result-screen" class="screen" style="display:none;">
         <h1>結果</h1>
-        <div id="result-details">
-            <p id="result-score"></p>
-            <p id="result-message"></p>
-            <button id="restart-button">タイトルへ→</button>
-        </div>
+        <p id="result-score"></p>
+        <p id="result-message"></p>
+        <button id="restart-button">タイトルへ→</button>
     </div>
-    
-    <div id="settings-overlay" style="display: none;">
+
+    <div id="settings-overlay" class="overlay" style="display:none;">
         <div id="settings-screen" class="screen">
             <button id="settings-close-button">×</button>
             <h2>設定</h2>
@@ -80,23 +77,22 @@
             </div>
         </div>
     </div>
-    <audio id="background-music" loop muted>
-        <source src="quiz_bgm.mp3" type="audio/mp3">
-        お使いのブラウザは音声ファイルをサポートしていません。
-    </audio>
+
+    <audio id="background-music" loop muted></audio>
     
     <audio id="sfx-question">
-        <source src="sfx_question.mp3" type="audio/mp3">
+        <source src="sfx_question.mp3" type="audio/mpeg">
     </audio>
     <audio id="sfx-correct">
-        <source src="sfx_correct.mp3" type="audio/mp3">
+        <source src="sfx_correct.mp3" type="audio/mpeg">
     </audio>
     <audio id="sfx-incorrect">
-        <source src="sfx_incorrect.mp3" type="audio/mp3">
+        <source src="sfx_incorrect.mp3" type="audio/mpeg">
     </audio>
     <audio id="sfx-drumroll">
-        <source src="sfx_drumroll.mp3" type="audio/mp3">
+        <source src="sfx_drumroll.mp3" type="audio/mpeg">
     </audio>
+    
     <script src="script.js"></script>
 </body>
 </html>
