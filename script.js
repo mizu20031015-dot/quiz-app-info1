@@ -1,177 +1,48 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 画面要素の取得
+    // 画面要素
     const titleScreen = document.getElementById('title-screen');
     const quizScreen = document.getElementById('quiz-screen');
     const feedbackScreen = document.getElementById('feedback-screen');
     const resultScreen = document.getElementById('result-screen');
-    const settingsOpenButton = document.getElementById('settings-open-button');
     const settingsOverlay = document.getElementById('settings-overlay');
-    const settingsCloseButton = document.getElementById('settings-close-button');
 
-    // ボタン要素の取得
-    const optionButtons = document.querySelectorAll('.option-btn');
-    const nextButton = document.getElementById('next-button');
-    const resultButton = document.getElementById('result-button');
-    const restartButton = document.getElementById('restart-button');
+    // 音声要素
+    const bgm = document.getElementById('background-music');
+    const sfx = {
+        question: document.getElementById('sfx-question'),
+        correct: document.getElementById('sfx-correct'),
+        incorrect: document.getElementById('sfx-incorrect'),
+        drumroll: document.getElementById('sfx-drumroll')
+    };
 
-    // 音声関連要素
-    const backgroundMusic = document.getElementById('background-music'); 
-    const sfxQuestion = document.getElementById('sfx-question');
-    const sfxCorrect = document.getElementById('sfx-correct');
-    const sfxIncorrect = document.getElementById('sfx-incorrect');
-    const sfxDrumroll = document.getElementById('sfx-drumroll');
-
-    // 設定画面UI
-    const settingsVolumeSlider = document.getElementById('settings-volume-slider');
-    const settingsBgmOnButton = document.getElementById('settings-bgm-on');
-    const settingsBgmOffButton = document.getElementById('settings-bgm-off');
-
-    // モード選択ボタン
-    const modeStudySoundButton = document.getElementById('mode-study-sound');
-    const modeStudySilentButton = document.getElementById('mode-study-silent');
-    const modeQuizButton = document.getElementById('mode-quiz');
-
-    // テキスト表示要素
-    const questionText = document.getElementById('question-text');
-    const questionCounter = document.getElementById('question-counter');
-    const totalQuestionsText = document.getElementById('total-questions');
-    const feedbackText = document.getElementById('feedback-text');
-    const correctAnswerText = document.getElementById('correct-answer');
-    const explanationTitle = document.getElementById('explanation-title');
-    const explanationText = document.getElementById('explanation-text');
-    const resultScore = document.getElementById('result-score');
-    const resultMessage = document.getElementById('result-message');
-
-    let questions = []; 
-    let currentQuestionIndex = 0; 
-    let correctAnswersCount = 0; 
-    let currentMode = 'silent'; 
-    let savedVolume = 0.5;
-
-    // 音源ファイルの定義
+    // 音源リスト
     const BGM_SOURCES = {
         sound: 'rain_sound_01_60min.mp3',
         quiz: 'quiz_bgm.mp3'
     };
 
+    let questions = [];
+    let currentQuestionIndex = 0;
+    let correctAnswersCount = 0;
+    let currentMode = 'silent';
+    let savedVolume = 0.5;
+
     async function loadQuestions() {
         try {
             const response = await fetch('questions.json');
             questions = await response.json();
-            if (questions.length > 0) {
-                totalQuestionsText.textContent = `全${questions.length}問`;
-            }
-        } catch (error) {
-            console.error('問題データの読み込みに失敗しました:', error);
+            document.getElementById('total-questions').textContent = `全${questions.length}問`;
+        } catch (error) { console.error('JSON読み込み失敗', error); }
+    }
+
+    // 再生失敗で処理を止めないための安全な再生関数
+    function safePlay(audioElement) {
+        if (!audioElement) return;
+        audioElement.currentTime = 0;
+        const playPromise = audioElement.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(() => console.log("再生ブロック回避"));
         }
-    }
-
-    function setGlobalVolume(volume, save = true) {
-        backgroundMusic.volume = volume;
-        if (save) savedVolume = volume;
-        settingsVolumeSlider.value = volume;
-    }
-
-    function toggleBgm(action) {
-        if (action === 'play') {
-            if (currentMode === 'sound' || currentMode === 'quiz') {
-                backgroundMusic.muted = false;
-                backgroundMusic.play().catch(e => console.log("再生ブロック:", e));
-            }
-        } else {
-            backgroundMusic.pause();
-        }
-    }
-
-    function playSfx(sfxElement) {
-        if (currentMode === 'quiz') {
-            // SFX再生中はBGMを下げるか止める処理
-            const originalVolume = backgroundMusic.volume;
-            backgroundMusic.volume = originalVolume * 0.3; 
-            
-            sfxElement.currentTime = 0;
-            sfxElement.play();
-            
-            sfxElement.onended = () => {
-                backgroundMusic.volume = originalVolume;
-            };
-        }
-    }
-
-    function showQuestion() {
-        const currentQuestion = questions[currentQuestionIndex];
-        questionCounter.textContent = `問${currentQuestionIndex + 1}`;
-        questionText.textContent = currentQuestion.question;
-        optionButtons.forEach((button, index) => {
-            button.textContent = currentQuestion.options[index];
-            button.disabled = false;
-        });
-
-        if (currentMode === 'quiz') playSfx(sfxQuestion);
-
-        hideAllScreens();
-        quizScreen.style.display = 'block';
-    }
-
-    function checkAnswer(selectedIndex) {
-        const currentQuestion = questions[currentQuestionIndex];
-        const isCorrect = (selectedIndex === currentQuestion.answer);
-
-        if (isCorrect) {
-            correctAnswersCount++;
-            feedbackText.textContent = '正解○';
-            feedbackText.style.color = 'green';
-            playSfx(sfxCorrect);
-        } else {
-            feedbackText.textContent = '不正解';
-            feedbackText.style.color = '#CC00CC';
-            playSfx(sfxIncorrect);
-        }
-
-        correctAnswerText.innerHTML = `正解： <span style="color: green; font-weight: bold;">${currentQuestion.options[currentQuestion.answer]}</span>`;
-        explanationText.textContent = currentQuestion.explanation;
-
-        if (currentQuestionIndex === questions.length - 1) {
-            nextButton.style.display = 'none';
-            resultButton.style.display = 'block';
-        } else {
-            nextButton.style.display = 'block';
-            resultButton.style.display = 'none';
-        }
-
-        hideAllScreens();
-        feedbackScreen.style.display = 'block';
-    }
-
-    function showResults() {
-        const totalQuestions = questions.length;
-        const scorePercentage = (correctAnswersCount / totalQuestions) * 100;
-        let message = '';
-
-        if (scorePercentage > 80) message = '完璧！情報Iマスター！';
-        else if (scorePercentage > 60) message = '素晴らしい！その調子！！';
-        else if (scorePercentage > 40) message = '標準到達！あと一歩！';
-        else if (scorePercentage > 20) message = 'これから伸びます！基礎固め！';
-        else message = '焦らず！まずはスタートライン！';
-
-        backgroundMusic.pause();
-
-        if (currentMode === 'quiz') {
-            sfxDrumroll.currentTime = 0;
-            sfxDrumroll.play();
-            sfxDrumroll.onended = () => {
-                displayResultData(totalQuestions, message);
-            };
-        } else {
-            displayResultData(totalQuestions, message);
-        }
-    }
-
-    function displayResultData(total, msg) {
-        resultScore.textContent = `${correctAnswersCount}/${total}`;
-        resultMessage.textContent = msg;
-        hideAllScreens();
-        resultScreen.style.display = 'block';
     }
 
     function startQuiz(mode) {
@@ -179,63 +50,95 @@ document.addEventListener('DOMContentLoaded', () => {
         currentQuestionIndex = 0;
         correctAnswersCount = 0;
 
+        bgm.pause();
         if (BGM_SOURCES[mode]) {
-            backgroundMusic.src = BGM_SOURCES[mode];
-            backgroundMusic.load();
-            backgroundMusic.muted = false;
-            backgroundMusic.volume = savedVolume;
-            backgroundMusic.play().catch(e => console.log("BGM再生待機:", e));
+            bgm.src = BGM_SOURCES[mode];
+            bgm.load();
+            bgm.muted = false;
+            bgm.volume = savedVolume;
+            safePlay(bgm);
         } else {
-            backgroundMusic.pause();
-            backgroundMusic.src = "";
+            bgm.src = "";
         }
-
         showQuestion();
     }
 
-    function hideAllScreens() {
-        titleScreen.style.display = 'none';
-        quizScreen.style.display = 'none';
-        feedbackScreen.style.display = 'none';
-        resultScreen.style.display = 'none';
+    function showQuestion() {
+        const q = questions[currentQuestionIndex];
+        document.getElementById('question-counter').textContent = `問${currentQuestionIndex + 1}`;
+        document.getElementById('question-text').textContent = q.question;
+        
+        const btns = document.querySelectorAll('.option-btn');
+        btns.forEach((btn, i) => {
+            btn.textContent = q.options[i];
+            btn.disabled = false;
+            btn.onclick = () => checkAnswer(i);
+        });
+
+        if (currentMode === 'quiz') safePlay(sfx.question);
+        switchScreen('quiz');
+    }
+
+    function checkAnswer(idx) {
+        const q = questions[currentQuestionIndex];
+        const isCorrect = (idx === q.answer);
+        const feedbackText = document.getElementById('feedback-text');
+
+        if (isCorrect) {
+            correctAnswersCount++;
+            feedbackText.textContent = '正解○';
+            feedbackText.style.color = 'green';
+            if (currentMode === 'quiz') safePlay(sfx.correct);
+        } else {
+            feedbackText.textContent = '不正解';
+            feedbackText.style.color = '#CC00CC';
+            if (currentMode === 'quiz') safePlay(sfx.incorrect);
+        }
+
+        document.getElementById('correct-answer').innerHTML = `正解： <span style="color: green; font-weight: bold;">${q.options[q.answer]}</span>`;
+        document.getElementById('explanation-text').textContent = q.explanation;
+
+        document.getElementById('next-button').style.display = (currentQuestionIndex < questions.length - 1) ? 'inline-block' : 'none';
+        document.getElementById('result-button').style.display = (currentQuestionIndex === questions.length - 1) ? 'inline-block' : 'none';
+
+        switchScreen('feedback');
+    }
+
+    function showResults() {
+        bgm.pause();
+        if (currentMode === 'quiz') safePlay(sfx.drumroll);
+
+        const scorePercent = (correctAnswersCount / questions.length) * 100;
+        let msg = scorePercent > 80 ? '完璧！情報Iマスター！' : scorePercent > 40 ? '標準到達！あと一歩！' : '焦らず基礎固め！';
+        
+        document.getElementById('result-score').textContent = `${correctAnswersCount}/${questions.length}`;
+        document.getElementById('result-message').textContent = msg;
+
+        // ドラムロールの有無に関わらず1.5秒後に確実に画面遷移（フリーズ防止）
+        setTimeout(() => switchScreen('result'), currentMode === 'quiz' ? 1500 : 0);
+    }
+
+    function switchScreen(screenId) {
+        [titleScreen, quizScreen, feedbackScreen, resultScreen].forEach(s => s.style.display = 'none');
+        document.getElementById(screenId + '-screen').style.display = 'block';
     }
 
     // イベントリスナー
-    modeStudySoundButton.addEventListener('click', () => startQuiz('sound'));
-    modeStudySilentButton.addEventListener('click', () => startQuiz('silent'));
-    modeQuizButton.addEventListener('click', () => startQuiz('quiz'));
-
-    optionButtons.forEach((button, index) => {
-        button.addEventListener('click', () => checkAnswer(index));
-    });
-
-    nextButton.addEventListener('click', () => {
-        currentQuestionIndex++;
-        showQuestion();
-    });
-
-    resultButton.addEventListener('click', showResults);
-    restartButton.addEventListener('click', () => {
-        backgroundMusic.pause();
-        backgroundMusic.src = "";
-        hideAllScreens();
-        titleScreen.style.display = 'block';
-    });
-
-    settingsOpenButton.addEventListener('click', () => {
-        settingsOverlay.style.display = 'flex';
-    });
-
-    settingsCloseButton.addEventListener('click', () => {
-        settingsOverlay.style.display = 'none';
-    });
-
-    settingsBgmOnButton.addEventListener('click', () => toggleBgm('play'));
-    settingsBgmOffButton.addEventListener('click', () => toggleBgm('pause'));
-
-    settingsVolumeSlider.addEventListener('input', (e) => {
-        setGlobalVolume(parseFloat(e.target.value));
-    });
+    document.getElementById('mode-study-sound').onclick = () => startQuiz('sound');
+    document.getElementById('mode-study-silent').onclick = () => startQuiz('silent');
+    document.getElementById('mode-quiz').onclick = () => startQuiz('quiz');
+    document.getElementById('next-button').onclick = () => { currentQuestionIndex++; showQuestion(); };
+    document.getElementById('result-button').onclick = showResults;
+    document.getElementById('restart-button').onclick = () => { bgm.pause(); switchScreen('title'); };
+    
+    document.getElementById('settings-open-button').onclick = () => settingsOverlay.style.display = 'flex';
+    document.getElementById('settings-close-button').onclick = () => settingsOverlay.style.display = 'none';
+    document.getElementById('settings-bgm-on').onclick = () => { bgm.muted = false; safePlay(bgm); };
+    document.getElementById('settings-bgm-off').onclick = () => { bgm.pause(); };
+    document.getElementById('settings-volume-slider').oninput = (e) => {
+        savedVolume = e.target.value;
+        bgm.volume = savedVolume;
+    };
 
     loadQuestions();
 });

@@ -1,3 +1,4 @@
+/* --- 全体レイアウト --- */
 body {
     font-family: Arial, sans-serif;
     display: flex;
@@ -18,45 +19,81 @@ body {
     text-align: center;
 }
 
+h1, h2, h3 { color: #111; font-weight: bold; }
 h1 { font-size: 4em; margin-bottom: 40px; }
-#total-questions { font-size: 2em; color: #555; margin-bottom: 20px; }
+#total-questions { font-size: 2em; font-weight: 500; color: #555; margin-bottom: 20px; }
 
-.mode-button, .option-btn, #next-button, #result-button, #restart-button {
+/* --- モード選択ボタン --- */
+#mode-selection-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+.mode-button {
+    width: 80%;
+    max-width: 600px;
+    padding: 20px 40px;
+    font-size: 2em;
     cursor: pointer;
     border: none;
     border-radius: 10px;
     color: white;
     background-color: #CC0000;
-    transition: background-color 0.2s;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.1s, background-color 0.2s;
 }
+.mode-button:active { transform: translateY(2px); background-color: #990000; }
 
-.mode-button { padding: 20px 40px; font-size: 2em; margin: 10px; }
-.option-btn { padding: 40px 30px; font-size: 3em; width: 100%; text-align: left; }
+/* --- クイズ画面 --- */
+#question-counter { font-size: 2em; color: #666; margin-bottom: 10px; }
+#question-text { font-size: 2.5em; margin-bottom: 30px; line-height: 1.4; }
 #options-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-
-/* 設定画面オーバーレイ */
-.overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background-color: rgba(0,0,0,0.5);
-    display: flex; justify-content: center; align-items: center;
-    z-index: 2000; /* 最前面に表示 */
+.option-btn {
+    padding: 40px 30px;
+    font-size: 3em;
+    cursor: pointer;
+    border: 3px solid #ccc;
+    border-radius: 15px;
+    background-color: #f9f9f9;
+    transition: background-color 0.2s, border-color 0.2s;
+    text-align: left;
 }
 
+/* --- フィードバック画面 --- */
+#feedback-text { font-size: 4em; margin-bottom: 20px; }
+#correct-answer { font-size: 2.5em; margin-bottom: 20px; }
+#explanation-text { font-size: 1.8em; text-align: left; margin: 10px auto; max-width: 900px; }
+
+/* --- 操作ボタン --- */
+#next-button, #result-button, #restart-button {
+    padding: 20px 60px; font-size: 2em; margin-top: 40px;
+    cursor: pointer; border: none; border-radius: 10px;
+    background-color: #CC0000; color: white;
+}
+
+/* --- 設定画面 (オーバーレイ) --- */
+.overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 9999; 
+}
 #settings-open-button {
     position: fixed; top: 20px; right: 20px;
     padding: 10px 20px; font-size: 1.2em; z-index: 1000;
 }
+#settings-screen { position: relative; max-width: 500px; }
+#settings-close-button { position: absolute; top: 10px; right: 15px; font-size: 2.5em; background: none; border: none; cursor: pointer; }
 
-#settings-close-button {
-    position: absolute; top: 10px; right: 10px;
-    font-size: 2em; background: none; border: none; cursor: pointer;
-}
-
-.setting-item { margin: 20px 0; text-align: left; }
-
+/* --- モバイル対応 --- */
 @media screen and (max-width: 768px) {
-    #options-container { grid-template-columns: 1fr; }
-    h1 { font-size: 2.5em; }
-    .option-btn { font-size: 1.8em; }
+    h1 { font-size: 2.2em; }
+    .mode-button { font-size: 1.5em; width: 95%; }
+    #question-text { font-size: 1.4em; }
+    #options-container { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .option-btn { font-size: 1.2em; padding: 10px 15px; }
+    #feedback-text { font-size: 2.0em; }
+    #correct-answer { font-size: 1.5em; }
+    #explanation-text { font-size: 1.2em; }
 }
