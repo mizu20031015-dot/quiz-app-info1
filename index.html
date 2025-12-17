@@ -49,16 +49,17 @@
 
     <div id="result-screen" class="screen" style="display:none;">
         <h1>結果</h1>
-        <p id="result-score"></p>
-        <p id="result-message"></p>
-        <button id="restart-button">タイトルへ→</button>
+        <div id="result-details" style="display:none;">
+            <p id="result-score"></p>
+            <p id="result-message"></p>
+            <button id="restart-button">タイトルへ→</button>
+        </div>
     </div>
 
     <div id="settings-overlay" class="overlay" style="display:none;">
         <div id="settings-screen" class="screen">
             <button id="settings-close-button">×</button>
             <h2>設定</h2>
-            
             <div class="setting-item">
                 <h3>BGM設定</h3>
                 <div class="setting-controls">
@@ -70,16 +71,11 @@
                     <button id="settings-bgm-off">BGM Off</button>
                 </div>
             </div>
-
-            <div class="setting-item">
-                <h3>その他</h3>
-                <p>情報I クイズアプリ v1.0</p>
-            </div>
+            <div class="setting-item"><h3>その他</h3><p>情報I クイズアプリ v1.0</p></div>
         </div>
     </div>
 
     <audio id="background-music" loop muted></audio>
-    
     <audio id="sfx-question"><source src="sfx_question.mp3" type="audio/mpeg"></audio>
     <audio id="sfx-correct"><source src="sfx_correct.mp3" type="audio/mpeg"></audio>
     <audio id="sfx-incorrect"><source src="sfx_incorrect.mp3" type="audio/mpeg"></audio>

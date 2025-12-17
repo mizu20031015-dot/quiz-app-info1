@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
         drumroll: document.getElementById('sfx-drumroll')
     };
 
-    // 音源リスト
+    // 音源
     const BGM_SOURCES = {
         sound: 'rain_sound_01_60min.mp3',
         quiz: 'quiz_bgm.mp3'
@@ -35,13 +35,22 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) { console.error('JSON読み込み失敗', error); }
     }
 
-    // 再生失敗で処理を止めないための安全な再生関数
-    function safePlay(audioElement) {
+    // 音声再生（BGM制御付き）
+    function playSfx(audioElement) {
         if (!audioElement) return;
-        audioElement.currentTime = 0;
-        const playPromise = audioElement.play();
-        if (playPromise !== undefined) {
-            playPromise.catch(() => console.log("再生ブロック回避"));
+        
+        // 知識確認モードならBGMを一時停止してSFXを再生
+        if (currentMode === 'quiz') {
+            bgm.pause(); 
+            audioElement.currentTime = 0;
+            audioElement.play().catch(e => console.log("SFX再生ブロック:", e));
+            
+            // SFX終了後にBGMを再開
+            audioElement.onended = () => {
+                if (!bgm.muted && bgm.src !== "") {
+                    bgm.play().catch(e => console.log("BGM復帰失敗:", e));
+                }
+            };
         }
     }
 
@@ -56,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
             bgm.load();
             bgm.muted = false;
             bgm.volume = savedVolume;
-            safePlay(bgm);
+            bgm.play().catch(e => console.log("BGM再生待ち"));
         } else {
             bgm.src = "";
         }
@@ -75,7 +84,9 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.onclick = () => checkAnswer(i);
         });
 
-        if (currentMode === 'quiz') safePlay(sfx.question);
+        // 出題音の再生
+        if (currentMode === 'quiz') playSfx(sfx.question);
+
         switchScreen('quiz');
     }
 
@@ -88,11 +99,11 @@ document.addEventListener('DOMContentLoaded', () => {
             correctAnswersCount++;
             feedbackText.textContent = '正解○';
             feedbackText.style.color = 'green';
-            if (currentMode === 'quiz') safePlay(sfx.correct);
+            playSfx(sfx.correct);
         } else {
             feedbackText.textContent = '不正解';
             feedbackText.style.color = '#CC00CC';
-            if (currentMode === 'quiz') safePlay(sfx.incorrect);
+            playSfx(sfx.incorrect);
         }
 
         document.getElementById('correct-answer').innerHTML = `正解： <span style="color: green; font-weight: bold;">${q.options[q.answer]}</span>`;
@@ -105,8 +116,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showResults() {
-        bgm.pause();
-        if (currentMode === 'quiz') safePlay(sfx.drumroll);
+        bgm.pause(); // BGM停止
+        
+        const resDetails = document.getElementById('result-details');
+        resDetails.style.display = 'none'; // スコア等を隠す
+        switchScreen('result');
 
         const scorePercent = (correctAnswersCount / questions.length) * 100;
         let msg = scorePercent > 80 ? '完璧！情報Iマスター！' : scorePercent > 40 ? '標準到達！あと一歩！' : '焦らず基礎固め！';
@@ -114,8 +128,17 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('result-score').textContent = `${correctAnswersCount}/${questions.length}`;
         document.getElementById('result-message').textContent = msg;
 
-        // ドラムロールの有無に関わらず1.5秒後に確実に画面遷移（フリーズ防止）
-        setTimeout(() => switchScreen('result'), currentMode === 'quiz' ? 1500 : 0);
+        if (currentMode === 'quiz') {
+            sfx.drumroll.currentTime = 0;
+            sfx.drumroll.play().catch(() => resDetails.style.display = 'block');
+            
+            // ドラムロール終了時にスコアを表示
+            sfx.drumroll.onended = () => {
+                resDetails.style.display = 'block';
+            };
+        } else {
+            resDetails.style.display = 'block';
+        }
     }
 
     function switchScreen(screenId) {
@@ -123,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById(screenId + '-screen').style.display = 'block';
     }
 
-    // イベントリスナー
+    // イベント
     document.getElementById('mode-study-sound').onclick = () => startQuiz('sound');
     document.getElementById('mode-study-silent').onclick = () => startQuiz('silent');
     document.getElementById('mode-quiz').onclick = () => startQuiz('quiz');
@@ -133,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     document.getElementById('settings-open-button').onclick = () => settingsOverlay.style.display = 'flex';
     document.getElementById('settings-close-button').onclick = () => settingsOverlay.style.display = 'none';
-    document.getElementById('settings-bgm-on').onclick = () => { bgm.muted = false; safePlay(bgm); };
+    document.getElementById('settings-bgm-on').onclick = () => { bgm.muted = false; bgm.play(); };
     document.getElementById('settings-bgm-off').onclick = () => { bgm.pause(); };
     document.getElementById('settings-volume-slider').oninput = (e) => {
         savedVolume = e.target.value;

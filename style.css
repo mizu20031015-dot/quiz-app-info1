@@ -249,3 +249,8 @@ h2 {
     .mode-button { padding: 10px 20px; font-size: 1.2em; }
     #result-details { display: none; }
 }
+
+/* ドラムロール演出用の表示制御。配置には影響しません。 */
+#result-details {
+    display: none;
+}
