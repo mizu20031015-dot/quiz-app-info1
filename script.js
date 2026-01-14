@@ -64,11 +64,10 @@ document.addEventListener('DOMContentLoaded', () => {
             sfx.question.currentTime = 0;
             sfx.question.play().catch(() => {});
             sfx.question.onended = () => {
-                if(currentMode === 'quiz' && !bgm.muted) bgm.play().catch(() => {});
+                if(currentMode === 'quiz' && !bgm.muted && savedVolume > 0) bgm.play().catch(() => {});
             };
         } else if (currentMode === 'sound') {
-            // 学習集中モードではBGMが止まっていないか確認して再生
-            if(bgm.paused) bgm.play().catch(() => {});
+            if(bgm.paused && savedVolume > 0) bgm.play().catch(() => {});
         }
     }
 
@@ -77,7 +76,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const isCorrect = (idx === q.answer);
         const fText = document.getElementById('feedback-text');
         
-        // 知識確認モードのみ、正誤判定画面でBGMを一時停止する
         if (currentMode === 'quiz') {
             bgm.pause();
             if (isCorrect) {
@@ -93,7 +91,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 sfx.incorrect.play().catch(() => {});
             }
         } else {
-            // 学習集中モードや音なしモードの場合
             if (isCorrect) {
                 correctAnswersCount++;
                 fText.textContent = '正解○';
@@ -150,8 +147,20 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     document.getElementById('settings-open-button').onclick = () => screens.settings.style.display = 'flex';
     document.getElementById('settings-close-button').onclick = () => screens.settings.style.display = 'none';
-    document.getElementById('settings-bgm-on').onclick = () => { bgm.muted = false; bgm.play(); };
-    document.getElementById('settings-bgm-off').onclick = () => { bgm.pause(); };
-    document.getElementById('settings-volume-slider').oninput = (e) => { savedVolume = e.target.value; bgm.volume = savedVolume; };
+    
+    // 音量調節バーのみで管理。0の場合は停止
+    document.getElementById('settings-volume-slider').oninput = (e) => {
+        savedVolume = parseFloat(e.target.value);
+        bgm.volume = savedVolume;
+        if (savedVolume === 0) {
+            bgm.pause();
+        } else if (bgm.paused && currentMode !== 'silent') {
+            // クイズ中かつ判定画面でない場合のみ再開
+            const isFeedbackVisible = screens.feedback.style.display === 'block';
+            if (!isFeedbackVisible || currentMode === 'sound') {
+                bgm.play().catch(() => {});
+            }
+        }
+    };
     loadQuestions();
 });
