@@ -14,10 +14,14 @@
         <h1>Webブラウザ クイズゲーム</h1>
         <p id="total-questions"></p>
         
-        <div id="mode-selection-buttons">
-            <button id="mode-study-sound" class="mode-button">学習集中モード (音あり)</button>
-            <button id="mode-study-silent" class="mode-button">学習集中モード (音なし)</button>
-            <button id="mode-quiz" class="mode-button">知識確認クイズモード</button>
+        <button id="start-app-button" class="mode-button">START</button>
+
+        <div id="mode-selection-area" style="display:none;">
+            <div id="mode-selection-buttons">
+                <button id="mode-study-sound" class="mode-button">学習集中モード (音あり)</button>
+                <button id="mode-study-silent" class="mode-button">学習集中モード (音なし)</button>
+                <button id="mode-quiz" class="mode-button">知識確認クイズモード</button>
+            </div>
         </div>
     </div>
 
@@ -49,7 +53,7 @@
 
     <div id="result-screen" class="screen" style="display:none;">
         <h1>結果</h1>
-        <div id="result-details" style="display:none;">
+        <div id="result-details">
             <p id="result-score"></p>
             <p id="result-message"></p>
             <button id="restart-button">タイトルへ→</button>
