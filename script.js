@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 画面・音声要素の取得
     const screens = {
         title: document.getElementById('title-screen'),
         modeSelection: document.getElementById('mode-selection-area'),
@@ -29,39 +28,13 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { console.error('JSON読込失敗', e); }
     }
 
-    // 音声再生（BGM制御＋フリーズ防止）
-    function playSfx(audioElement, callback) {
-        if (!audioElement) { if(callback) callback(); return; }
-        
-        // 知識確認モード時はBGMを一時停止
-        const isQuizMode = (currentMode === 'quiz');
-        if (isQuizMode) bgm.pause();
-
-        audioElement.currentTime = 0;
-        audioElement.play().catch(e => {
-            console.warn("再生ブロック:", e);
-            if(callback) callback(); // 失敗しても次へ
-        });
-
-        // 音声終了または強制終了タイマー
-        let finished = false;
-        const finish = () => {
-            if (finished) return;
-            finished = true;
-            if (isQuizMode && !bgm.muted && bgm.src !== "") bgm.play();
-            if (callback) callback();
-        };
-
-        audioElement.onended = finish;
-        setTimeout(finish, 3000); // 3秒経ったら強制的に次へ
-    }
-
-    // 1. アプリ開始（音声許可取得）
+    // 1. STARTボタン：音声許可を確実に取得
     document.getElementById('start-app-button').onclick = function() {
         this.style.display = 'none';
         screens.modeSelection.style.display = 'block';
-        // ブラウザに音声再生を許可させるためのダミー再生
         bgm.play().then(() => bgm.pause()).catch(() => {});
+        // SFX類も一度ロードさせてブラウザに認識させる
+        Object.values(sfx).forEach(s => { s.load(); });
     };
 
     function startQuiz(mode) {
@@ -69,13 +42,10 @@ document.addEventListener('DOMContentLoaded', () => {
         currentQuestionIndex = 0;
         correctAnswersCount = 0;
         bgm.pause();
-        if (BGM_SOURCES[mode]) {
-            bgm.src = BGM_SOURCES[mode];
-            bgm.load();
-            bgm.muted = false;
-            bgm.volume = savedVolume;
-            bgm.play().catch(() => {});
-        } else { bgm.src = ""; }
+        bgm.src = BGM_SOURCES[mode] || "";
+        bgm.load();
+        bgm.volume = savedVolume;
+        bgm.muted = false;
         showQuestion();
     }
 
@@ -88,28 +58,52 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.textContent = q.options[i];
             btn.onclick = () => checkAnswer(i);
         });
-        if (currentMode === 'quiz') playSfx(sfx.question);
+
         switchScreen('quiz');
+
+        // 直列再生：出題音(SFX)を鳴らし、終わってからBGMを開始
+        if (currentMode === 'quiz') {
+            bgm.pause(); 
+            sfx.question.currentTime = 0;
+            sfx.question.play().catch(() => {});
+            sfx.question.onended = () => {
+                if(currentMode === 'quiz' && !bgm.muted) bgm.play().catch(() => {});
+            };
+        } else if (currentMode === 'sound') {
+            bgm.play().catch(() => {});
+        }
     }
 
     function checkAnswer(idx) {
         const q = questions[currentQuestionIndex];
         const isCorrect = (idx === q.answer);
         const fText = document.getElementById('feedback-text');
+        
+        // ボタンを押した瞬間にBGM停止（ご提案の負荷軽減策）
+        bgm.pause();
+
         if (isCorrect) {
             correctAnswersCount++;
             fText.textContent = '正解○';
             fText.style.color = 'green';
-            playSfx(sfx.correct);
+            if(currentMode === 'quiz') {
+                sfx.correct.currentTime = 0;
+                sfx.correct.play().catch(() => {});
+            }
         } else {
             fText.textContent = '不正解';
             fText.style.color = '#CC00CC';
-            playSfx(sfx.incorrect);
+            if(currentMode === 'quiz') {
+                sfx.incorrect.currentTime = 0;
+                sfx.incorrect.play().catch(() => {});
+            }
         }
+
         document.getElementById('correct-answer').innerHTML = `正解： <span style="color:green;">${q.options[q.answer]}</span>`;
         document.getElementById('explanation-text').textContent = q.explanation;
         document.getElementById('next-button').style.display = (currentQuestionIndex < questions.length - 1) ? 'inline-block' : 'none';
         document.getElementById('result-button').style.display = (currentQuestionIndex === questions.length - 1) ? 'inline-block' : 'none';
+
         switchScreen('feedback');
     }
 
@@ -123,9 +117,11 @@ document.addEventListener('DOMContentLoaded', () => {
             (correctAnswersCount / questions.length > 0.8) ? '完璧！' : '基礎を固めよう！';
 
         if (currentMode === 'quiz') {
-            playSfx(sfx.drumroll, () => {
-                screens.resDetails.style.display = 'block';
-            });
+            sfx.drumroll.currentTime = 0;
+            sfx.drumroll.play().catch(() => { screens.resDetails.style.display = 'block'; });
+            sfx.drumroll.onended = () => { screens.resDetails.style.display = 'block'; };
+            // バックアップタイマー（万が一のフリーズ防止）
+            setTimeout(() => { screens.resDetails.style.display = 'block'; }, 3000);
         } else {
             screens.resDetails.style.display = 'block';
         }
@@ -136,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById(id + '-screen').style.display = 'block';
     }
 
-    // イベントリスナー
+    // イベント
     document.getElementById('mode-study-sound').onclick = () => startQuiz('sound');
     document.getElementById('mode-study-silent').onclick = () => startQuiz('silent');
     document.getElementById('mode-quiz').onclick = () => startQuiz('quiz');
@@ -150,6 +146,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     document.getElementById('settings-open-button').onclick = () => screens.settings.style.display = 'flex';
     document.getElementById('settings-close-button').onclick = () => screens.settings.style.display = 'none';
+    document.getElementById('settings-bgm-on').onclick = () => { bgm.muted = false; bgm.play(); };
+    document.getElementById('settings-bgm-off').onclick = () => { bgm.pause(); };
     document.getElementById('settings-volume-slider').oninput = (e) => { savedVolume = e.target.value; bgm.volume = savedVolume; };
     loadQuestions();
 });
