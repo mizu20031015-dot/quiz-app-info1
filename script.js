@@ -28,12 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { console.error('JSON読込失敗', e); }
     }
 
-    // 1. STARTボタン：音声許可を確実に取得
     document.getElementById('start-app-button').onclick = function() {
         this.style.display = 'none';
         screens.modeSelection.style.display = 'block';
         bgm.play().then(() => bgm.pause()).catch(() => {});
-        // SFX類も一度ロードさせてブラウザに認識させる
         Object.values(sfx).forEach(s => { s.load(); });
     };
 
@@ -61,7 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         switchScreen('quiz');
 
-        // 直列再生：出題音(SFX)を鳴らし、終わってからBGMを開始
         if (currentMode === 'quiz') {
             bgm.pause(); 
             sfx.question.currentTime = 0;
@@ -70,7 +67,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(currentMode === 'quiz' && !bgm.muted) bgm.play().catch(() => {});
             };
         } else if (currentMode === 'sound') {
-            bgm.play().catch(() => {});
+            // 学習集中モードではBGMが止まっていないか確認して再生
+            if(bgm.paused) bgm.play().catch(() => {});
         }
     }
 
@@ -79,23 +77,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const isCorrect = (idx === q.answer);
         const fText = document.getElementById('feedback-text');
         
-        // ボタンを押した瞬間にBGM停止（ご提案の負荷軽減策）
-        bgm.pause();
-
-        if (isCorrect) {
-            correctAnswersCount++;
-            fText.textContent = '正解○';
-            fText.style.color = 'green';
-            if(currentMode === 'quiz') {
+        // 知識確認モードのみ、正誤判定画面でBGMを一時停止する
+        if (currentMode === 'quiz') {
+            bgm.pause();
+            if (isCorrect) {
+                correctAnswersCount++;
+                fText.textContent = '正解○';
+                fText.style.color = 'green';
                 sfx.correct.currentTime = 0;
                 sfx.correct.play().catch(() => {});
-            }
-        } else {
-            fText.textContent = '不正解';
-            fText.style.color = '#CC00CC';
-            if(currentMode === 'quiz') {
+            } else {
+                fText.textContent = '不正解';
+                fText.style.color = '#CC00CC';
                 sfx.incorrect.currentTime = 0;
                 sfx.incorrect.play().catch(() => {});
+            }
+        } else {
+            // 学習集中モードや音なしモードの場合
+            if (isCorrect) {
+                correctAnswersCount++;
+                fText.textContent = '正解○';
+                fText.style.color = 'green';
+            } else {
+                fText.textContent = '不正解';
+                fText.style.color = '#CC00CC';
             }
         }
 
@@ -120,7 +125,6 @@ document.addEventListener('DOMContentLoaded', () => {
             sfx.drumroll.currentTime = 0;
             sfx.drumroll.play().catch(() => { screens.resDetails.style.display = 'block'; });
             sfx.drumroll.onended = () => { screens.resDetails.style.display = 'block'; };
-            // バックアップタイマー（万が一のフリーズ防止）
             setTimeout(() => { screens.resDetails.style.display = 'block'; }, 3000);
         } else {
             screens.resDetails.style.display = 'block';
